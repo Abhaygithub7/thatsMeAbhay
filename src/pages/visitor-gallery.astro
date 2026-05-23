@@ -208,6 +208,29 @@ import '../styles/global.css';
         animation: none !important;
       }
     }
+
+    /* Modal responsive scaling for mobile viewports */
+    @media (max-width: 440px) {
+      .modal-card-scale-wrap {
+        container-type: inline-size;
+        width: 100%;
+        max-width: 388px;
+        aspect-ratio: 388 / 252;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-card-scale-wrap [data-modal-card] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 388px !important;
+        height: 252px !important;
+        transform-origin: top left;
+        transform: scale(calc(100cqi / 388)) !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-[var(--color-bg)] text-[var(--color-ink)] font-body selection:bg-[var(--color-bg-neutral)]">
@@ -315,7 +338,8 @@ import '../styles/global.css';
   <div data-detail-modal class="gallery-detail fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
     <div class="absolute inset-0 z-0 cursor-pointer bg-[var(--color-bg)]/80 backdrop-blur-md" data-close-backdrop></div>
     
-    <div class="relative z-10 w-[388px] max-w-full aspect-[388/252] rounded-[24px] shadow-2xl transition-transform duration-300 scale-95 flex flex-col p-7 text-white font-mono uppercase border border-black/10 select-none overflow-hidden" data-modal-card>
+    <div class="modal-card-scale-wrap z-10 relative flex justify-center items-center">
+      <div class="relative z-10 w-[388px] max-w-full aspect-[388/252] rounded-[24px] shadow-2xl transition-transform duration-300 scale-95 flex flex-col p-7 text-white font-mono uppercase border border-black/10 select-none overflow-hidden" data-modal-card>
       <div class="flex justify-between items-center z-10">
         <h3 class="font-display font-light text-[24px] leading-none normal-case">Developer Card</h3>
         <button type="button" data-close-modal class="text-2xl leading-none font-mono text-white/80 hover:text-white cursor-pointer select-none">×</button>
@@ -347,6 +371,7 @@ import '../styles/global.css';
       <pre data-modal-ascii class="absolute pointer-events-none whitespace-pre select-none font-mono text-[14px] leading-[1.08] right-[-24px] bottom-[-14px] opacity-50 z-0"></pre>
     </div>
   </div>
+</div>
 
   <!-- Custom Cursor, Sparks & Site Pet widgets -->
   <CustomCursor />
