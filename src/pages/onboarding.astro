@@ -67,6 +67,24 @@ import '../styles/global.css';
       opacity: 1;
       pointer-events: auto;
     }
+    
+    /* Responsive fluid scaling for drawing card on mobile */
+    .card-scale-wrap {
+      container-type: inline-size;
+      width: 100%;
+      max-width: 388px;
+      aspect-ratio: 388 / 252;
+      position: relative;
+    }
+    .card-scale-wrap :global(#library-card) {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 388px;
+      height: 252px;
+      transform-origin: top left;
+      transform: scale(calc(100cqi / 388));
+    }
   </style>
 </head>
 <body class="bg-[var(--color-ink)] text-[var(--color-ink)] font-body selection:bg-[var(--color-bg-neutral)]">
