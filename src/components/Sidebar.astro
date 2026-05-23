@@ -155,11 +155,12 @@ const { activeSection } = Astro.props;
 }
 
 .site-sidebar[data-open] {
-  transform: translateX(0);
+  transform: translateX(0) !important;
+  translate: 0 !important;
 }
 .sidebar-backdrop[data-open] {
-  opacity: 1;
-  pointer-events: auto;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* Active TOC pill coloring by section */
@@ -191,15 +192,23 @@ li:hover .toc-preview {
     const close = document.querySelector("[data-sidebar-close]");
 
     function openMenu() {
-      sidebar?.setAttribute("data-open", "");
-      backdrop?.setAttribute("data-open", "");
-      toggle?.setAttribute("aria-expanded", "true");
+      const activeSidebar = document.querySelector("[data-sidebar]");
+      const activeBackdrop = document.querySelector("[data-sidebar-backdrop]");
+      const activeToggle = document.querySelector("[data-sidebar-toggle]");
+
+      activeSidebar?.setAttribute("data-open", "");
+      activeBackdrop?.setAttribute("data-open", "");
+      activeToggle?.setAttribute("aria-expanded", "true");
     }
 
     function closeMenu() {
-      sidebar?.removeAttribute("data-open");
-      backdrop?.removeAttribute("data-open");
-      toggle?.setAttribute("aria-expanded", "false");
+      const activeSidebar = document.querySelector("[data-sidebar]");
+      const activeBackdrop = document.querySelector("[data-sidebar-backdrop]");
+      const activeToggle = document.querySelector("[data-sidebar-toggle]");
+
+      activeSidebar?.removeAttribute("data-open");
+      activeBackdrop?.removeAttribute("data-open");
+      activeToggle?.setAttribute("aria-expanded", "false");
     }
 
     if (toggle && toggle.dataset.wired !== "1") {
@@ -215,9 +224,28 @@ li:hover .toc-preview {
       backdrop.addEventListener("click", closeMenu);
     }
 
+    // Dynamic Active Section synchronization based on URL pathname
+    const path = window.location.pathname;
+    let section = 'work';
+    if (path.includes('/about')) {
+      section = 'about';
+    } else if (path.includes('/visitor-gallery')) {
+      section = 'gallery';
+    }
+
     // Active Indicator Pill math
     const toc = document.querySelector("[data-toc]");
     if (toc) {
+      // Sync attributes dynamically on page load/transition
+      toc.dataset.active = section;
+      toc.querySelectorAll("[data-toc-item]").forEach(item => {
+        if (item.dataset.key === section) {
+          item.setAttribute("data-active", "");
+        } else {
+          item.removeAttribute("data-active");
+        }
+      });
+
       const list = toc.querySelector("[data-toc-list]");
       const pill = toc.querySelector("[data-toc-pill]");
 
