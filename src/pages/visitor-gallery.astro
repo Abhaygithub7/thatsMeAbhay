@@ -656,11 +656,26 @@ import '../styles/global.css';
           ...d
         }));
 
+        // Determine user theme color from onboarding
+        let graphColor = "var(--color-teal)"; // default fallback
+        try {
+          const currentVisitor = JSON.parse(sessionStorage.getItem("current_visitor") || "null");
+          if (currentVisitor && currentVisitor.color) {
+            const colorVars = {
+              indigo: "var(--color-pink)",
+              teal: "var(--color-teal)",
+              green: "var(--color-green)",
+              orange: "var(--color-orange)"
+            };
+            graphColor = colorVars[currentVisitor.color] || "var(--color-pink)";
+          }
+        } catch (e) {}
+
         const linePath = points.map((p, index) => `${index === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
         const fillPath = `${linePath} L${points[points.length - 1].x.toFixed(1)},${height} L${points[0].x.toFixed(1)},${height} Z`;
 
         const invisibleDots = points.map(p => `
-          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--color-teal)" opacity="0" class="stats-line__dot" data-tip-day="${p.day}" data-tip-count="${p.count}" />
+          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${graphColor}" opacity="0" class="stats-line__dot" data-tip-day="${p.day}" data-tip-count="${p.count}" />
         `).join("");
 
         timelineWrap.innerHTML = `
@@ -668,12 +683,12 @@ import '../styles/global.css';
           <div class="flex flex-col gap-1">
             <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="w-full h-20 overflow-visible" data-stats-line role="img" aria-label="Visitor signups chart over ${timelineDays.length} days, peak ${peakVal} per day">
               <!-- Fill area -->
-              <path d="${fillPath}" fill="var(--color-teal)" opacity="0.08" />
+              <path d="${fillPath}" fill="${graphColor}" opacity="0.08" />
               <!-- Stroke line -->
-              <path d="${linePath}" fill="none" stroke="var(--color-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" />
+              <path d="${linePath}" fill="none" stroke="${graphColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" />
               <!-- Hover elements -->
               <line data-stats-crosshair x1="0" y1="0" x2="0" y2="${height}" stroke="var(--color-ink-mute)" stroke-width="1" stroke-dasharray="3 3" opacity="0" />
-              <circle data-stats-active-dot cx="0" cy="0" r="4.5" fill="var(--color-teal)" stroke="var(--color-bg)" stroke-width="2" opacity="0" />
+              <circle data-stats-active-dot cx="0" cy="0" r="4.5" fill="${graphColor}" stroke="var(--color-bg)" stroke-width="2" opacity="0" />
               <!-- Invisible dots for raycasting coordinates -->
               ${invisibleDots}
             </svg>
@@ -740,7 +755,7 @@ import '../styles/global.css';
 
         // Mapped color label configurations
         const colorMeta = {
-          indigo: { label: "Pink", color: "var(--color-pink)" }, // pink maps to indigo
+          indigo: { label: "Indigo", color: "var(--color-pink)" }, // pink/indigo maps to indigo
           orange: { label: "Orange", color: "var(--color-orange)" },
           teal: { label: "Teal", color: "var(--color-teal)" },
           green: { label: "Green", color: "var(--color-green)" }
@@ -1108,8 +1123,18 @@ import '../styles/global.css';
           if (currentUserCardId === cardData.id) {
             const youPill = document.createElement("span");
             youPill.className = "mini-card-pill absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 font-mono font-bold text-[10px] uppercase px-2 py-0.5 rounded-[4px] tracking-wider shadow-sm select-none pointer-events-none";
-            youPill.style.backgroundColor = "var(--color-pink-2)";
-            youPill.style.color = "#4f46e5"; // Indigo matching custom pill
+            
+            // Match onboarding color selection
+            const pillColors = {
+              indigo: { bg: "var(--color-pink-2)", text: "#4f46e5" },
+              teal: { bg: "var(--color-teal-3)", text: "var(--color-teal)" },
+              green: { bg: "var(--color-green-2)", text: "var(--color-green)" },
+              orange: { bg: "var(--color-orange-2)", text: "var(--color-orange)" }
+            };
+            const colors = pillColors[cardData.color] || pillColors.indigo;
+            youPill.style.backgroundColor = colors.bg;
+            youPill.style.color = colors.text;
+            
             youPill.textContent = "That’s you!";
             wrapper.appendChild(youPill);
           }

@@ -30,7 +30,7 @@
 </div>
 
 <style>
-.custom-cursor[data-color=pink]{--cursor-color: var(--color-pink)}
+.custom-cursor[data-color=pink],.custom-cursor[data-color=indigo]{--cursor-color: var(--color-pink)}
 .custom-cursor[data-color=teal]{--cursor-color: var(--color-teal)}
 .custom-cursor[data-color=green]{--cursor-color: var(--color-green)}
 .custom-cursor[data-color=orange]{--cursor-color: var(--color-orange)}
@@ -155,7 +155,15 @@
 
   if (window.__customCursorInit) {
     const el = document.querySelector("[data-custom-cursor]");
-    if (el) el.classList.remove("hidden");
+    if (el) {
+      el.classList.remove("hidden");
+      try {
+        const currentVisitor = JSON.parse(sessionStorage.getItem("current_visitor") || "null");
+        if (currentVisitor && currentVisitor.color) {
+          el.setAttribute("data-color", currentVisitor.color);
+        }
+      } catch (e) {}
+    }
     setNativeCursorHidden(true);
     return;
   }
@@ -170,6 +178,12 @@
   if (cursorEl) {
     cursorEl.classList.remove("hidden");
     cursorEl.style.opacity = "0";
+    try {
+      const currentVisitor = JSON.parse(sessionStorage.getItem("current_visitor") || "null");
+      if (currentVisitor && currentVisitor.color) {
+        cursorEl.setAttribute("data-color", currentVisitor.color);
+      }
+    } catch (e) {}
   }
   setNativeCursorHidden(true);
 
@@ -250,6 +264,12 @@
       if (el) {
         el.classList.remove("hidden");
         if (hasMoved) el.style.opacity = "1";
+        try {
+          const currentVisitor = JSON.parse(sessionStorage.getItem("current_visitor") || "null");
+          if (currentVisitor && currentVisitor.color) {
+            el.setAttribute("data-color", currentVisitor.color);
+          }
+        } catch (e) {}
       }
       setNativeCursorHidden(true);
     } else {

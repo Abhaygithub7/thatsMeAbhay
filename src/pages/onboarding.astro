@@ -217,9 +217,14 @@ import '../styles/global.css';
       }
 
       // Handle submission transition
+      let isSubmitting = false;
+      let isTransitioning = false;
+
       form?.addEventListener("submit", (e) => {
         e.preventDefault();
         
+        if (isSubmitting) return;
+
         const nameVal = nameInput?.value.trim();
         if (!nameVal) {
           if (errDisplay) {
@@ -229,16 +234,27 @@ import '../styles/global.css';
           return;
         }
 
+        isSubmitting = true;
         // Request signature PNG from SignatureCard pad
         window.dispatchEvent(new CustomEvent("card:request-signature"));
       });
 
       // Capture drawing data base64 png
-      window.addEventListener("card:signature-ready", async (e) => {
+      if (window._handleSignatureReady) {
+        window.removeEventListener("card:signature-ready", window._handleSignatureReady);
+      }
+
+      window._handleSignatureReady = async (e) => {
         const base64Signature = e.detail.dataUrl;
         const hasDrawn = e.detail.hasDrawn;
 
         if (!hasDrawn) {
+          isSubmitting = false;
+          const submitBtn = form.querySelector("button[type='submit']");
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "enter →";
+          }
           if (errDisplay) {
             errDisplay.textContent = "Please draw your signature first.";
             errDisplay.style.opacity = "1";
@@ -284,9 +300,14 @@ import '../styles/global.css';
 
         // Trigger Wallet Transition
         triggerWalletSubmitTransition();
-      });
+      };
+
+      window.addEventListener("card:signature-ready", window._handleSignatureReady);
 
       function triggerWalletSubmitTransition() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
         const overlay = document.querySelector("[data-wallet-overlay]");
         const overlayBg = document.querySelector("[data-wallet-bg]");
         const track = document.querySelector("[data-wallet-track]");
@@ -297,6 +318,9 @@ import '../styles/global.css';
           window.location.href = "/home";
           return;
         }
+
+        // Clear track first to ensure no duplicate card clones are rendered
+        track.innerHTML = "";
 
         // Clone active card for animation track
         const clone = activeCard.cloneNode(true);
@@ -315,6 +339,11 @@ import '../styles/global.css';
         // Lock screen inputs
         document.body.style.pointerEvents = "none";
         
+        // Hide original card to avoid rendering two cards at the same time
+        activeCard.style.opacity = "0";
+        activeCard.style.pointerEvents = "none";
+        activeCard.style.transition = "opacity 0.2s ease-out";
+
         // Show transitions
         overlay.setAttribute("data-open", "");
         overlay.style.opacity = "1";

@@ -152,6 +152,17 @@
     const eraserPreview = document.querySelector("[data-eraser-preview]");
     if (!card || !canvas) return;
 
+    // Clean up previous event listeners on window to prevent duplication on view transitions
+    if (window._handleRequestSignature) {
+      window.removeEventListener("card:request-signature", window._handleRequestSignature);
+    }
+    if (window._handleToolChange) {
+      window.removeEventListener("card:tool-change", window._handleToolChange);
+    }
+    if (window._handleResize) {
+      window.removeEventListener("resize", window._handleResize);
+    }
+
     const ctx = canvas.getContext("2d");
     let isDrawing = false;
     let hasDrawn = false;
@@ -169,7 +180,8 @@
     }
     
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    window._handleResize = resizeCanvas;
+    window.addEventListener("resize", window._handleResize);
 
     // Calligraphy drawing physics (variables)
     let lastX = 0, lastY = 0;
@@ -289,20 +301,22 @@
     }
 
     // Connect Tool Toggle events
-    window.addEventListener("card:tool-change", (e) => {
+    window._handleToolChange = (e) => {
       drawTool = e.detail.tool; // "pen" or "eraser"
       if (canvas) {
         canvas.setAttribute("data-cursor", drawTool);
       }
-    });
+    };
+    window.addEventListener("card:tool-change", window._handleToolChange);
 
     // Save Base64 utility listener
-    window.addEventListener("card:request-signature", () => {
+    window._handleRequestSignature = () => {
       const dataUrl = canvas.toDataURL("image/png");
       window.dispatchEvent(new CustomEvent("card:signature-ready", {
         detail: { dataUrl: dataUrl, hasDrawn: hasDrawn }
       }));
-    });
+    };
+    window.addEventListener("card:request-signature", window._handleRequestSignature);
   }
 
   initSignaturePad();
