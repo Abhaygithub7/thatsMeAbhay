@@ -1,0 +1,185 @@
+---
+---
+<canvas data-spark-burst aria-hidden="true" class="pointer-events-none fixed inset-0 z-[90] h-full w-full"></canvas>
+
+<script type="module" is:inline>
+(function() {
+  const TEAL_RGB = "79, 138, 136"; // Match --color-teal #4f8a88
+  const INDIGO_RGB = "99, 102, 241"; // Match --color-pink/indigo #6366f1
+  const ACCENT_COLORS = [TEAL_RGB, INDIGO_RGB];
+  
+  let canvas = null;
+  let ctx = null;
+  let dpr = 1;
+  let animId = 0;
+  let lastTime = 0;
+  const particles = [];
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function resizeCanvas() {
+    if (!canvas || !ctx) return;
+    dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function spawnSparks(x, y) {
+    if (prefersReducedMotion) {
+      // Reduced motion: Single expanding circle
+      particles.push({
+        x: x,
+        y: y,
+        vx: 0,
+        vy: 0,
+        life: 0,
+        ttl: 450,
+        size: 24,
+        colorType: "ring",
+        twinkle: 0
+      });
+      return;
+    }
+
+    const count = 20 + Math.floor(Math.random() * 12);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 120 + Math.pow(Math.random(), 0.6) * 380;
+      const ttl = 650 + Math.random() * 300;
+      particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0,
+        ttl: ttl,
+        size: 1.2 + Math.random() * 2.2,
+        colorType: Math.random() < 0.45 ? "accent" : "white",
+        accentColor: ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)],
+        twinkle: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function drawFrame(time) {
+    if (!canvas || !ctx) return;
+    const elapsed = Math.min(48, time - lastTime);
+    lastTime = time;
+    const dt = elapsed / 1000;
+
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.globalCompositeOperation = "lighter";
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life += elapsed;
+      
+      if (p.life >= p.ttl) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      // Physics: drag force + gravity (sparks rise upwards)
+      p.vy -= 45 * dt; 
+      p.vx *= 0.96;
+      p.vy *= 0.96;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      const progress = p.life / p.ttl;
+      const remaining = 1 - progress;
+      const sparkle = 0.7 + 0.3 * Math.sin(p.twinkle + p.life * 0.02);
+      const alpha = Math.max(0, remaining * sparkle);
+
+      if (prefersReducedMotion) {
+        // Render simple expanding ring
+        const currentSize = p.size + progress * 48;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        continue;
+      }
+
+      // Render glowing sparks
+      const rgb = p.colorType === "accent" ? p.accentColor : "255, 255, 255";
+      const radius = p.size * (1 + 0.4 * sparkle);
+      
+      const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 6);
+      gradient.addColorStop(0, `rgba(${rgb}, ${alpha * 0.55})`);
+      gradient.addColorStop(1, `rgba(${rgb}, 0)`);
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius * 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = "source-over";
+    animId = requestAnimationFrame(drawFrame);
+  }
+
+  let lastClickTime = 0;
+  function handlePointerDown(e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (!canvas) return;
+    lastClickTime = performance.now();
+    spawnSparks(e.clientX, e.clientY);
+  }
+
+  function handleTouchStart(e) {
+    if (!canvas || performance.now() - lastClickTime < 50) return;
+    const touch = e.touches[0];
+    if (touch) {
+      spawnSparks(touch.clientX, touch.clientY);
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      cancelAnimationFrame(animId);
+    } else {
+      lastTime = performance.now();
+      if (canvas) animId = requestAnimationFrame(drawFrame);
+    }
+  }
+
+  function initCanvas() {
+    const el = document.querySelector("[data-spark-burst]");
+    if (!el) {
+      cancelAnimationFrame(animId);
+      canvas = null;
+      ctx = null;
+      return;
+    }
+    if (el !== canvas) {
+      cancelAnimationFrame(animId);
+      particles.length = 0;
+      canvas = el;
+      ctx = canvas.getContext("2d");
+      if (ctx) {
+        resizeCanvas();
+        lastTime = performance.now();
+        animId = requestAnimationFrame(drawFrame);
+      }
+    }
+  }
+
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+  window.addEventListener("pointerdown", handlePointerDown, { passive: true });
+  window.addEventListener("touchstart", handleTouchStart, { passive: true });
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  // Initialize canvas
+  initCanvas();
+  document.addEventListener("astro:page-load", initCanvas);
+})();
+</script>

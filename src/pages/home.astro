@@ -1,0 +1,249 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Sidebar from '../components/Sidebar.astro';
+import CustomCursor from '../components/CustomCursor.astro';
+import SparkBurst from '../components/SparkBurst.astro';
+import SitePet from '../components/SitePet.astro';
+import '../styles/global.css';
+
+// Mock project datasets with titles, description, tags, roles, and timeframes
+const PROJECTS = [
+  {
+    num: "No. 01",
+    title: "Capriagos",
+    description: "A premium, minimalist digital catalog and brand experience designed for the sustainable clothing label Capriagos, featuring fluid layout shifts.",
+    role: "Frontend Developer",
+    team: "Startup Collab",
+    timeframe: "Dec 2025 - Jan 2026",
+    tags: ["SHIPPED", "WEB APP"],
+    tilt: "-0.6deg",
+    cursor: "external",
+    cursorLabel: "visit website",
+    image: "/images/projects/capriagos.png",
+    url: "https://capriagos.vercel.app/",
+    color: "teal"
+  },
+  {
+    num: "No. 02",
+    title: "Mirofish_Lite",
+    description: "A high-performance Python framework for multi-agent swarm simulations. Automates agent dynamics, proxy orchestration, and memory logs.",
+    role: "Core Creator",
+    team: "Open Source",
+    timeframe: "March 2026",
+    tags: ["PYTHON", "SWARM AI"],
+    tilt: "0.5deg",
+    cursor: "external",
+    cursorLabel: "view repo",
+    image: "/images/projects/mirofish_lite.png",
+    url: "https://github.com/Abhaygithub7/Mirofish-lite",
+    color: "indigo"
+  },
+  {
+    num: "No. 03",
+    title: "Jobflow",
+    description: "A premium job application pipeline dashboard featuring customized AI cover letter generation and resume tailoring utilities.",
+    role: "Full Stack Developer",
+    team: "Solo Project",
+    timeframe: "Jan - Feb 2026",
+    tags: ["AI TOOLS", "SHIPPED"],
+    tilt: "0.3deg",
+    cursor: "external",
+    cursorLabel: "track jobs",
+    image: "/images/projects/jobflow.png",
+    url: "https://job-flow-eta.vercel.app/",
+    color: "orange"
+  }
+];
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Portfolio of Abhay Singh Chauhan — Software Developer with ML and AI inclination.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap">
+  <title>Abhay Singh Chauhan</title>
+  <ClientRouter />
+  
+  <style>
+    .home-veil {
+      animation: home-veil-peel 0.62s var(--ease-out-soft) 0.2s forwards;
+    }
+    @keyframes home-veil-peel {
+      to { transform: translateY(-100%); }
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-bg)] text-[var(--color-ink)] font-body">
+  
+  <!-- Veil overlay that peels upwards on load -->
+  <div data-home-veil aria-hidden="true" class="home-veil fixed inset-0 z-50 bg-[var(--color-bg)] pointer-events-none"></div>
+
+  <div class="flex flex-col lg:flex-row items-stretch min-h-screen">
+    
+    <!-- Sidebar component -->
+    <Sidebar activeSection="work" />
+
+    <!-- Main Workspace Area -->
+    <main class="flex flex-col gap-6 sm:gap-8 p-6 md:p-12 flex-1 min-w-0">
+      
+      <!-- Latest Log Widget -->
+      <article data-latest-log data-collapsed="false" class="latest-log bg-[var(--color-ink)] text-[var(--color-ink-inverted)] rounded-[12px] p-4 flex flex-col gap-2 transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] border border-black/10 select-none shadow-sm">
+        <header data-toggle role="button" tabindex="0" aria-label="Collapse log" aria-expanded="true" data-cursor="link" class="flex items-center justify-between cursor-pointer select-none">
+          <div class="flex items-center gap-2">
+            <p class="font-mono text-[11px] sm:text-xs uppercase tracking-widest text-[var(--color-ink-mute)]">
+              Latest Log
+            </p>
+            <span class="size-1.5 rounded-full bg-[var(--color-pink)] animate-ping" aria-hidden="true"></span>
+            <p class="font-body text-xs text-[var(--color-ink-mute)]">
+              May 23, 2026
+            </p>
+          </div>
+          <span aria-hidden="true" class="latest-log__chevron text-[var(--color-ink-inverted)] opacity-70 hover:opacity-100 transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-soft)]">
+            <svg class="chevron-icon size-4 transition-transform" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </header>
+        <div data-body class="latest-log__body grid transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] grid-rows-[1fr] opacity-100">
+          <div class="latest-log__clip overflow-hidden">
+            <p class="font-body text-[13px] text-[var(--color-ink-mute)] leading-relaxed mt-1.5">
+              I have just finalized a visual training suite for fine-tuning smaller model nodes (SLMs) using QLoRA architectures locally. Also prototyping a multi-agent orchestrator utilizing local model nodes to autonomously script and debug frontend components. Keep exploring!
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Projects Grid Layout -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mt-2">
+        {PROJECTS.map((proj, idx) => (
+          <a href={proj.url} target="_blank" rel="noopener noreferrer" data-cursor={proj.cursor} data-cursor-label={proj.cursorLabel} data-color={proj.color} class="index-card flex flex-col relative select-none no-underline" style={`--card-tilt: ${proj.tilt};`}>
+            
+            <!-- Holes mimicking page binder files -->
+            <div class="index-card__top flex justify-between items-center mb-3">
+              <span class="index-card__hole inline-block size-3.5 rounded-full bg-[var(--color-bg)] shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)]"></span>
+              <span class="index-card__num font-mono text-xs text-[var(--color-ink-dim)] uppercase tracking-widest">{proj.num}</span>
+            </div>
+
+            <!-- Visual slot -->
+            <div class="index-card__frame rounded-[10px] overflow-hidden border border-black/5 bg-black/5 shadow-inner mb-4 relative" style="height: 240px;">
+              <img src={proj.image} alt={proj.title} class="index-card__media size-full object-cover select-none pointer-events-none opacity-90 transition-transform duration-[var(--duration-slow)] ease-[var(--ease-out-soft)] hover:scale-105" loading="lazy">
+            </div>
+
+            <!-- Content details -->
+            <div class="index-card__body flex flex-col gap-2.5">
+              <div class="index-card__heading flex justify-between items-start flex-wrap gap-2">
+                <h3 class="index-card__title font-display font-light text-[22px] tracking-tight leading-none text-[var(--color-ink)]">
+                  {proj.title}
+                </h3>
+                <div class="index-card__tags flex gap-1.5 items-center flex-wrap">
+                  {proj.tags.map(tag => (
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-[4px] bg-[var(--color-bg-neutral)] text-[10px] font-mono text-[var(--color-ink-dim)] uppercase border border-black/5">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <p class="index-card__description font-body text-xs leading-relaxed text-[var(--color-ink-dim)]">
+                {proj.description}
+              </p>
+
+              <!-- Footer details row -->
+              <div class="index-card__details border-t border-[var(--color-bg-neutral)] pt-3.5 mt-2 flex flex-col gap-1.5">
+                <dl class="grid grid-cols-3 text-[10px] font-mono uppercase tracking-wider text-[var(--color-ink-dim)]">
+                  <div class="flex flex-col">
+                    <dt class="opacity-60 text-[9px] mb-0.5">Role</dt>
+                    <dd class="text-[var(--color-ink)] font-semibold truncate">{proj.role}</dd>
+                  </div>
+                  <div class="flex flex-col">
+                    <dt class="opacity-60 text-[9px] mb-0.5">Team</dt>
+                    <dd class="text-[var(--color-ink)] truncate">{proj.team}</dd>
+                  </div>
+                  <div class="flex flex-col">
+                    <dt class="opacity-60 text-[9px] mb-0.5">Timeframe</dt>
+                    <dd class="text-[var(--color-ink)] truncate">{proj.timeframe}</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+          </a>
+        ))}
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Custom Cursor, Sparks & Site Pet widgets -->
+  <CustomCursor />
+  <SparkBurst />
+  <SitePet />
+
+  <style>
+    /* Premium index-card CSS styles */
+    .index-card {
+      background-color: var(--color-bg-white);
+      border: 1px solid var(--color-bg-neutral);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+      transform: rotate(var(--card-tilt, 0deg));
+      transition: transform var(--duration-base) var(--ease-out-soft), box-shadow var(--duration-base) var(--ease-out-soft), border-color var(--duration-base) var(--ease-out-soft);
+      z-index: 1;
+      text-decoration: none;
+      color: inherit;
+    }
+    .index-card[data-color=indigo] { border-top: 4px solid var(--color-pink); }
+    .index-card[data-color=teal] { border-top: 4px solid var(--color-teal); }
+    .index-card[data-color=green] { border-top: 4px solid var(--color-green); }
+    .index-card[data-color=orange] { border-top: 4px solid var(--color-orange); }
+    
+    .index-card:hover {
+      transform: translateY(-8px) rotate(0deg) scale(1.015);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+      border-color: var(--color-bg-neutral-2);
+      z-index: 10;
+    }
+  </style>
+
+  <script type="module" is:inline>
+    (function() {
+      // Setup Collapsible Accordion latest log
+      function initLatestLog() {
+        const log = document.querySelector("[data-latest-log]");
+        if (!log) return;
+        const toggle = log.querySelector("[data-toggle]");
+        const body = log.querySelector("[data-body]");
+        const chevron = log.querySelector(".chevron-icon");
+
+        if (toggle && toggle.dataset.wired !== "1") {
+          toggle.dataset.wired = "1";
+          toggle.addEventListener("click", () => {
+            const collapsed = log.getAttribute("data-collapsed") === "true";
+            log.setAttribute("data-collapsed", String(!collapsed));
+            toggle.setAttribute("aria-expanded", String(collapsed));
+            
+            if (collapsed) {
+              // Expand
+              body.style.gridTemplateRows = "1fr";
+              body.style.opacity = "1";
+              chevron.style.transform = "rotate(0deg)";
+            } else {
+              // Collapse
+              body.style.gridTemplateRows = "0fr";
+              body.style.opacity = "0";
+              chevron.style.transform = "rotate(-90deg)";
+            }
+          });
+        }
+      }
+
+      initLatestLog();
+      document.addEventListener("astro:page-load", initLatestLog);
+    })();
+  </script>
+</body>
+</html>

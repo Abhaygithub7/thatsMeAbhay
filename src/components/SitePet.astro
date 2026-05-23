@@ -1,0 +1,1501 @@
+---
+// SitePet.astro - A blocky interactive pet that wanders, hops on elements, wears hats, and emotes.
+---
+<!-- Hat stand rack container -->
+<div data-hat-rack data-astro-transition-persist="site-pet-rack" class="hat-rack" aria-label="Hat rack">
+  <button type="button" data-rack-toggle data-cursor="link" class="hat-rack__toggle" aria-label="Choose a hat">
+    <svg class="hat-rack__icon hat-rack__icon--default" width="26" height="22" viewBox="0 0 40 34" aria-hidden="true">
+      <!-- shelf -->
+      <rect x="2" y="26" width="36" height="2.2" rx="1" fill="#6b6553"></rect>
+      <!-- shelf brackets -->
+      <rect x="5" y="28" width="2" height="6" rx="0.7" fill="#6b6553"></rect>
+      <rect x="33" y="28" width="2" height="6" rx="0.7" fill="#6b6553"></rect>
+      <!-- sprout sitting on the shelf -->
+      <rect x="19" y="12" width="2" height="14" fill="#2a8f50"></rect>
+      <ellipse cx="13" cy="7" rx="9" ry="4.8" fill="#3ca564" transform="rotate(28 13 7)"></ellipse>
+      <ellipse cx="28" cy="7" rx="9" ry="4.8" fill="#3ca564" transform="rotate(-28 28 7)"></ellipse>
+    </svg>
+    <span data-rack-preview-slot class="hat-rack__preview-slot" aria-hidden="true"></span>
+  </button>
+
+  <div class="hat-rack__menu" data-rack-options aria-hidden="true">
+    <button type="button" class="hat-rack__opt" data-hat-choice="none" data-cursor="link" aria-label="No hat">
+      <span class="hat-rack__none">∅</span>
+    </button>
+    <button type="button" class="hat-rack__opt" data-hat-choice="bucket" data-cursor="link" aria-label="Bucket hat">
+      <svg width="28" height="15" viewBox="-4 -9 48 17" aria-hidden="true">
+        <rect x="10" y="-5" width="24" height="10" rx="3" fill="#e8c84a"></rect>
+        <rect x="-1" y="2" width="46" height="6" rx="3" fill="#e8c84a"></rect>
+      </svg>
+    </button>
+    <button type="button" class="hat-rack__opt" data-hat-choice="top" data-cursor="link" aria-label="Top hat">
+      <svg width="26" height="18" viewBox="0 -14 44 19" aria-hidden="true">
+        <rect x="13" y="-12" width="18" height="14" rx="2.5" fill="#1a1a1a"></rect>
+        <rect x="4" y="0" width="36" height="5" rx="2.5" fill="#1a1a1a"></rect>
+      </svg>
+    </button>
+    <button type="button" class="hat-rack__opt" data-hat-choice="cap" data-cursor="link" aria-label="Baseball cap">
+      <svg width="28" height="15" viewBox="0 -6 44 15" aria-hidden="true">
+        <rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d"></rect>
+        <rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d"></rect>
+      </svg>
+    </button>
+    <button type="button" class="hat-rack__opt" data-hat-choice="sprout" data-cursor="link" aria-label="Sprout">
+      <svg width="30" height="22" viewBox="8 -14 26 20" aria-hidden="true">
+        <rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50"></rect>
+        <ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)"></ellipse>
+        <ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)"></ellipse>
+      </svg>
+    </button>
+    <button type="button" class="hat-rack__opt" data-hat-choice="party" data-cursor="link" aria-label="Party hat">
+      <svg width="26" height="18" viewBox="10 -14 26 16" aria-hidden="true">
+        <polygon points="22.5,-12 14,0 31,0" fill="#bf5a7a"></polygon>
+        <rect x="14" y="0" width="17" height="2" rx="1" fill="#bf5a7a"></rect>
+        <circle cx="22.5" cy="-12" r="2" fill="#168b9d"></circle>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Site Pet Container -->
+<div data-site-pet data-astro-transition-persist="site-pet" aria-hidden="true" class="site-pet">
+  <div class="site-pet__bubble" data-pet-bubble aria-hidden="true"></div>
+  <div class="site-pet__emotes" data-pet-emotes aria-hidden="true"></div>
+  <button type="button" data-pet-hit data-cursor="link" class="site-pet__hit" aria-label="Pet the pet">
+    <span class="site-pet__bob">
+      <svg width="44" height="56" viewBox="0 0 44 56" class="site-pet__svg" fill="none">
+        <!-- soft contact shadow so the pet reads as grounded -->
+        <ellipse class="site-pet__shadow" cx="22" cy="53.5" rx="14" ry="1.8" fill="#242424" opacity="0.16"></ellipse>
+        <!-- single slab body — a lean geometric monolith, ink-on-ink -->
+        <rect x="4" y="6" width="36" height="38" rx="5" fill="#242424"></rect>
+        <!-- subtle top highlight for depth -->
+        <rect x="4" y="6" width="36" height="2" rx="1" fill="#f3e9d6" opacity="0.1"></rect>
+        <!-- slit eyes — thin, evenly spaced. Group transforms for glance + blink. -->
+        <g class="site-pet__eyes" style="--eye-x: 0; --eye-y: 0;">
+          <rect class="site-pet__eye" x="14" y="22" width="4" height="5" rx="1" fill="#f3e9d6"></rect>
+          <rect class="site-pet__eye" x="26" y="22" width="4" height="5" rx="1" fill="#f3e9d6"></rect>
+        </g>
+        <!-- legs — short blocky extrusions flush with the body -->
+        <rect class="site-pet__leg site-pet__leg--left" x="10" y="42" width="8" height="10" rx="1.5" fill="#242424"></rect>
+        <rect class="site-pet__leg site-pet__leg--right" x="26" y="42" width="8" height="10" rx="1.5" fill="#242424"></rect>
+        <!-- Hats — every variant is drawn but only the one matching .site-pet[data-hat="<key>"] is visible via CSS -->
+        <g class="pet-hat" data-hat-variant="bucket">
+          <rect x="10" y="-7" width="24" height="10" rx="3" fill="#e8c84a"></rect>
+          <rect x="-1" y="0" width="46" height="6" rx="3" fill="#e8c84a"></rect>
+        </g>
+        <g class="pet-hat" data-hat-variant="top">
+          <rect x="13" y="-11" width="18" height="14" rx="2.5" fill="#1a1a1a"></rect>
+          <rect x="4" y="1" width="36" height="5" rx="2.5" fill="#1a1a1a"></rect>
+        </g>
+        <g class="pet-hat" data-hat-variant="cap">
+          <rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d"></rect>
+          <rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d"></rect>
+        </g>
+        <g class="pet-hat" data-hat-variant="sprout">
+          <!-- thin darker stem + two ellipse leaves pivoted so their outer tips point upward like ^ -->
+          <rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50"></rect>
+          <ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)"></ellipse>
+          <ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)"></ellipse>
+        </g>
+        <g class="pet-hat" data-hat-variant="party">
+          <!-- party cone + pom-pom — brim sits flush on the head top -->
+          <polygon points="22.5,-8 14,4 31,4" fill="#bf5a7a"></polygon>
+          <rect x="14" y="4" width="17" height="2" rx="1" fill="#bf5a7a"></rect>
+          <circle cx="22.5" cy="-8" r="2" fill="#168b9d"></circle>
+        </g>
+      </svg>
+    </span>
+  </button>
+</div>
+
+<style>
+.site-pet {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 80;
+  pointer-events: none;
+  --pet-x: 40px;
+  --pet-y: 0px;
+  --pet-ground: 0px;
+  --pet-flip: 1;
+  transform: translate3d(var(--pet-x), calc((var(--pet-y) + var(--pet-ground)) * -1), 0);
+  will-change: transform;
+}
+.site-pet__hit {
+  display: block;
+  position: relative;
+  padding: 12px;
+  margin: -12px;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  transform: scaleX(var(--pet-flip));
+  transform-origin: 50% 50%;
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  touch-action: none;
+}
+.site-pet[data-dragging] .site-pet__hit {
+  cursor: grabbing;
+}
+.site-pet[data-on-clickable] .site-pet__hit {
+  padding: 20px;
+  margin: -20px;
+}
+.site-pet__svg {
+  display: block;
+  overflow: visible;
+}
+.pet-hat {
+  display: none;
+}
+.site-pet[data-hat=bucket] .pet-hat[data-hat-variant=bucket],
+.site-pet[data-hat=top] .pet-hat[data-hat-variant=top],
+.site-pet[data-hat=cap] .pet-hat[data-hat-variant=cap],
+.site-pet[data-hat=sprout] .pet-hat[data-hat-variant=sprout],
+.site-pet[data-hat=party] .pet-hat[data-hat-variant=party] {
+  display: block;
+}
+.site-pet__bob {
+  display: block;
+  animation: site-pet-bob 0.5s ease-in-out infinite;
+}
+@keyframes site-pet-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+.site-pet__leg {
+  transform-origin: 50% 100%;
+  animation: site-pet-leg 0.46s steps(2, end) infinite;
+}
+.site-pet__leg--right {
+  animation-delay: 0.23s;
+}
+@keyframes site-pet-leg {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.site-pet__eye {
+  transform-origin: 50% 50%;
+  transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.site-pet[data-blink] .site-pet__eye {
+  transform: scaleY(0.15);
+}
+.site-pet[data-paused]:not([data-dragging]) .site-pet__leg,
+.site-pet[data-paused]:not([data-dragging]) .site-pet__bob {
+  animation-play-state: paused;
+}
+.site-pet[data-dragging] .site-pet__bob {
+  animation: none;
+}
+.site-pet[data-dragging] .site-pet__leg {
+  animation: site-pet-leg-kick 0.26s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+.site-pet[data-dragging] .site-pet__leg--right {
+  animation-delay: 0.13s;
+}
+@keyframes site-pet-leg-kick {
+  0% { transform: translateY(1px) rotate(-16deg); }
+  50% { transform: translateY(-1px) rotate(14deg); }
+  100% { transform: translateY(1px) rotate(-16deg); }
+}
+.site-pet__shadow {
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+  transform-origin: 22px 53.5px;
+}
+.site-pet[data-dragging] .site-pet__shadow {
+  opacity: 0.08;
+  transform: scale(0.7);
+}
+.site-pet[data-bump] .site-pet__bob {
+  animation: site-pet-bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes site-pet-bump {
+  0% { transform: translate(0) rotate(0); }
+  30% { transform: translate(calc(var(--pet-bump-dir, 1) * 3px)) rotate(calc(var(--pet-bump-dir, 1) * -6deg)); }
+  100% { transform: translate(0) rotate(0); }
+}
+.site-pet[data-hopping] .site-pet__bob {
+  animation: site-pet-hop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes site-pet-hop {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-18px) rotate(-6deg); }
+  100% { transform: translateY(0); }
+}
+.site-pet[data-dizzy] .site-pet__bob {
+  animation: site-pet-dizzy-sway 0.6s ease-in-out infinite;
+}
+.site-pet[data-dizzy] .site-pet__eyes {
+  animation: site-pet-dizzy-eyes 0.9s linear infinite;
+  transform-origin: 22px 25px;
+}
+.site-pet[data-dizzy] .site-pet__leg {
+  animation-play-state: paused;
+}
+@keyframes site-pet-dizzy-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes site-pet-dizzy-eyes {
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
+}
+.site-pet-spin-star {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #f3e9d6;
+  box-shadow: 0 0 4px #f3e9d6a6;
+  transform: translate(-50%, -50%);
+  animation: site-pet-spin-star 0.9s linear infinite;
+}
+@keyframes site-pet-spin-star {
+  0% { transform: translate(-50%, -50%) rotate(0) translate(18px) rotate(0); }
+  100% { transform: translate(-50%, -50%) rotate(360deg) translate(18px) rotate(-360deg); }
+}
+.site-pet-swirl {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  color: #f3e9d6;
+  animation: site-pet-swirl 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.site-pet-swirl svg {
+  display: block;
+}
+@keyframes site-pet-swirl {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0) scale(0.5); }
+  30% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--swirl-dx, 0px)), calc(-50% - 34px)) rotate(540deg) scale(1.15); }
+}
+.site-pet__emotes {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.site-pet-emote {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #242424;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: site-pet-emote 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes site-pet-emote {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  25% { opacity: 0.75; transform: translate(calc(-50% + var(--emote-dx, 0px)), calc(-50% - 10px)) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--emote-dx, 0px) * 1.4), calc(-50% - 28px)) scale(0.7); }
+}
+.site-pet__bubble {
+  position: absolute;
+  left: 22px;
+  bottom: calc(100% + 14px);
+  transform: translate(-50%) translateY(4px);
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #121212d1;
+  color: #f3e9d6;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1), transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 6px 14px -6px #0006;
+}
+.site-pet__bubble[data-show] {
+  opacity: 1;
+  transform: translate(-50%);
+}
+.site-pet[data-hat=bucket] .site-pet__bubble,
+.site-pet[data-hat=top] .site-pet__bubble,
+.site-pet[data-hat=cap] .site-pet__bubble,
+.site-pet[data-hat=sprout] .site-pet__bubble,
+.site-pet[data-hat=party] .site-pet__bubble {
+  bottom: calc(100% + 26px);
+}
+.site-pet__bubble:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 0;
+  height: 0;
+  transform: translate(-50%);
+  border: 5px solid transparent;
+  border-top-color: #121212d1;
+  border-bottom: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-pet__bob, .site-pet__leg { animation: none; }
+}
+
+/* Hat rack */
+.hat-rack {
+  position: fixed;
+  left: var(--rack-x, 40px);
+  top: var(--rack-y, 40px);
+  z-index: 85;
+  pointer-events: none;
+}
+.hat-rack__toggle {
+  all: unset;
+  display: inline-block;
+  position: relative;
+  width: 26px;
+  height: 22px;
+  cursor: pointer;
+  pointer-events: auto;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 3px rgba(36, 36, 36, 0.28));
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hat-rack__toggle:before {
+  content: "";
+  position: absolute;
+  inset: -14px -18px;
+}
+.hat-rack__toggle:after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 220px;
+  height: 26px;
+  transform: translate(-50%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  pointer-events: auto;
+}
+.hat-rack__toggle:hover {
+  transform: translateY(-2px) scale(1.06);
+}
+.hat-rack__toggle svg {
+  display: block;
+}
+.hat-rack__preview-slot {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%);
+  display: none;
+  pointer-events: none;
+}
+.hat-rack__preview-slot svg {
+  display: block;
+}
+.hat-rack[data-has-hat] .hat-rack__icon--default {
+  display: none;
+}
+.hat-rack[data-has-hat] .hat-rack__preview-slot {
+  display: block;
+}
+.hat-rack__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translate(-50%) translateY(-4px) scale(0.95);
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 10px;
+  background: #121212e0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 10px 22px -10px #0000008c;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1), transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+}
+.hat-rack:hover:not([data-hat-picked]) .hat-rack__menu,
+.hat-rack:focus-within .hat-rack__menu,
+.hat-rack[data-open] .hat-rack__menu {
+  opacity: 1;
+  transform: translate(-50%) translateY(0) scale(1);
+  pointer-events: auto;
+}
+.hat-rack__opt {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 30px;
+  padding: 0 3px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.16s ease-out, transform 0.18s var(--ease-out-soft);
+  color: #f3e9d6;
+}
+.hat-rack__opt:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.hat-rack__opt svg {
+  display: block;
+}
+.hat-rack__opt[data-selected] {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(243, 233, 214, 0.6);
+}
+.hat-rack__none {
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  color: #f3e9d6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hat-rack__toggle, .hat-rack__menu, .hat-rack__opt {
+    transition: opacity 0.12s ease-out;
+    transform: none;
+  }
+  .hat-rack[data-open] .hat-rack__menu {
+    transform: translate(-50%);
+  }
+}
+</style>
+
+<script>
+  // site pet logic
+  if (!window.__sitePetInit) {
+    window.__sitePetInit = true;
+    const z = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    function M() {
+      return document.querySelector("[data-site-pet]");
+    }
+    const T = 44,
+      N = 56,
+      it = 34,
+      at = ["ow!", "oof", "ouch!", "argh", "oof!"],
+      rt = ["heya!", "hi there", "sup", "yo", "oh hi"],
+      st = ["still here", "again?", "hi again", "yes?", "pspsps"],
+      ct = [
+        "why do you keep\npoking me?",
+        "stop that",
+        "okay okay",
+        "quit it",
+        "enough.",
+      ],
+      lt = ["rude.", "really?", "ow.", "i'm not a button", "stop!"];
+    function dt(e) {
+      return e <= 2 ? rt : e <= 4 ? st : e <= 7 ? ct : lt;
+    }
+    let _ = 0,
+      Ce = false;
+      
+    // Local storage persistence fallback for pokes count
+    try {
+      _ = parseInt(localStorage.getItem("sitepet:totalPokes") || "0", 10);
+    } catch(e) {}
+
+    const ut = ["what's up?", "hi!", "oh hey", "howdy", "sup?", "hello"],
+      ht = [
+        "where are you\ntaking me?",
+        "put me down!",
+        "wheeee",
+        "careful, careful",
+        "oh no",
+      ],
+      se = ["phew", "back to it", "thanks i guess", "okay okay"],
+      De = ["whoaa....", "ugh.", "...stars", "head spinny"],
+      ft = [
+        "hi there",
+        "just walking",
+        "dum de dum",
+        "anyone there?",
+        "hmm",
+        "psst",
+        "abhay hasn't fed me\nin three days",
+        "have you tried putting\na hat on me yet?",
+        "i bet i could stand\non one of those...",
+        "try dropping me\non something!",
+      ],
+      Ie = [
+        "ooh interesting",
+        "wow he made this??",
+        "this is so cool",
+        "i'm learning things",
+        "tell me more",
+        "fascinating",
+        "i love this project",
+      ],
+      mt = {
+        "/work/lingofable": [
+          "i want to learn a\nnew language now",
+        ],
+        "/work/sklonuj": [
+          "i want to learn a\nnew language now",
+        ],
+      },
+      pt = [
+        "whooaaa",
+        "what's gonna be here?",
+        "curious...",
+        "coming soon huh",
+        "i wanna play!",
+        "the stars are pretty",
+        "feels cosmic in here",
+        "are we in space??",
+      ],
+      gt = [
+        "mentor at DTI? nice",
+        "climbing Clash Royale ladder?",
+        "age of empires is classic",
+        "precise drifting in trackmania!",
+        "cr7 is the goat!",
+        "siuuuuu!",
+        "so many communities",
+      ],
+      wt = [
+        "so many visitors!",
+        "ooh who's this one",
+        "i wonder who'll\ncome next",
+        "look at all\nthese people",
+        "everyone has\nsuch cool colors",
+        "am i a visitor too?",
+        "it's a party in here",
+        "the gallery is growing!",
+      ],
+      ce = [
+        "nice view up here",
+        "i can see everything!",
+        "ooh a perch",
+        "cozy spot",
+        "i live here now",
+        "higher ground!",
+        "king of the hill",
+        "don't look down",
+      ],
+      le = [
+        "kinda high up huh",
+        "wonder what's below",
+        "living on the edge",
+        "i'm supervising",
+        "overseeing operations",
+        "this is my domain now",
+        "abhay can't reach me\nup here",
+        "contemplating existence",
+      ],
+      yt = [
+        {
+          match: "[data-toc]",
+          phrases: [
+            "i'm the explore guide now",
+            "which page next?",
+            "navigation assistant\nreporting for duty",
+            "pick a page, any page",
+          ],
+        },
+        {
+          match: "[data-latest-log]",
+          phrases: [
+            "ooh fresh updates",
+            "breaking news!",
+            "i'm on top of\nthe news",
+            "latest scoop right here",
+          ],
+        },
+        {
+          match: ".index-card",
+          phrases: [
+            "this project looks cool",
+            "i'm guarding this one",
+            "click it! click it!",
+            "abhay worked hard\non this",
+            "i helped (i didn't)",
+          ],
+        },
+        {
+          match: "[data-portrait]",
+          phrases: [
+            "nice photo!",
+            "looking sharp",
+            "sitting on his head hehe",
+            "portrait guardian",
+          ],
+        },
+        {
+          match: "[data-community-card]",
+          phrases: [
+            "ooh a club!",
+            "abhay's so involved",
+            "community vibes",
+            "he's busy huh",
+          ],
+        },
+        {
+          match: "[data-fave]",
+          phrases: [
+            "good taste confirmed",
+            "i approve of this pick",
+            "ooh what's this one?",
+            "abhay's favorites\nare elite",
+          ],
+        },
+        {
+          match: "[data-mini-card-wrap]",
+          phrases: [
+            "hi visitor!",
+            "whose card is this?",
+            "nice color choice",
+            "welcome welcome",
+          ],
+        },
+      ],
+      de = [
+        "AHHH",
+        "woah woah woah—",
+        "not again!",
+        "gravity why",
+        "i slipped!!",
+        "floor is lava— wait no",
+        "mayday mayday",
+        "aaand down we go",
+      ];
+    let p = 40,
+      h = 0,
+      u = 0,
+      S = 0,
+      y = 0,
+      L = 1,
+      ue = performance.now(),
+      q = false,
+      g = false,
+      B = false,
+      K = null,
+      U = null,
+      qe = 0,
+      Be = 0,
+      he = 0,
+      fe = 0,
+      Fe = 0,
+      me = 0,
+      pe = 0,
+      ge = 0,
+      we = 0,
+      Q = -9999,
+      Ge = -9999,
+      ye = 0,
+      w = false,
+      Z = 0,
+      be = 0,
+      Oe = 0,
+      v = false,
+      x = [],
+      ee = 0,
+      k = [];
+    const bt = [
+      "[data-toc], .index-card, [data-latest-log]",
+      "[data-portrait], [data-community-card], [data-fave]",
+      "[data-mini-card-wrap]",
+    ].join(", ");
+    let Ye = [],
+      ve = true,
+      Ae = 0;
+    const vt = 4;
+    function At() {
+      ((Ye = Array.from(document.querySelectorAll(bt))), (ve = false));
+    }
+    function Se() {
+      ve = true;
+    }
+    (document.addEventListener("astro:page-load", Se),
+      window.addEventListener("gallery:shuffle", Se),
+      window.addEventListener("gallery:cards-added", Se));
+    function We() {
+      return (ve && At(), Ye);
+    }
+    let l = null,
+      F = 0,
+      Ee = 0,
+      ze = 0;
+    const Ne = 0.03;
+    let Le = false,
+      te = 0,
+      ne = 0,
+      Ue = 0;
+    const St = [
+        "w-woah!",
+        "hey! steady!",
+        "earthquake!!",
+        "whoaaa",
+        "i'm gonna fall!",
+        "hold on hold on",
+        "the ground is moving!",
+        "stop scrolling!",
+        "ahhh shaky!",
+        "too wobbly!!",
+      ],
+      Et = 120,
+      Lt = 80;
+    let ke = 0;
+    const kt = 2000;
+    function Xe(e) {
+      if (!l || performance.now() - ke < kt) return null;
+      const n = l.getBoundingClientRect(),
+        t = We();
+      let o = null,
+        a = Infinity;
+      for (const c of t) {
+        if (c === l) continue;
+        const r = c.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0 || Math.abs(r.top - n.top) > Lt)
+          continue;
+        let s;
+        (e === 1 ? (s = r.left - n.right) : (s = n.left - r.right),
+          !(s < -10 || s > Et) && s < a && ((o = c), (a = s)));
+      }
+      return o;
+    }
+    const Rt = [
+      "wheee!",
+      "parkour!",
+      "boing!",
+      "hop hop",
+      "watch this!",
+      "nailed it",
+      "comin through!",
+    ];
+    function $e(e, n) {
+      const t = l.getBoundingClientRect(),
+        o = e.getBoundingClientRect(),
+        a =
+          n === 1
+            ? o.left + o.width / 2 - (t.right - T / 2)
+            : t.left + T / 2 - (o.right - o.width / 2),
+        c = t.top - o.top,
+        r = y;
+      ((l = null), (F = 0));
+      const d = document.querySelector("footer[data-footer-root]");
+      let s = 0;
+      if (d) {
+        const E = d.getBoundingClientRect();
+        E.top < window.innerHeight &&
+          E.bottom > 0 &&
+          (s = Math.max(0, window.innerHeight - E.top));
+      }
+      ((y = s), (h = Math.max(0, r - s)), (S = (a / 0.45) * n));
+      const H = 40 + Math.max(0, c);
+      ((u = Math.sqrt(2 * 3200 * H)), ($ = false), (ke = performance.now()), C());
+      const A = M();
+      A && (A.removeAttribute("data-on-clickable"), f(A, Rt, 1400));
+    }
+    function Re(e, n) {
+      const t = We();
+      let o = null,
+        a = Infinity;
+      for (const c of t) {
+        const r = c.getBoundingClientRect(),
+          d = e + T / 2;
+        if (d < r.left - 10 || d > r.right + 10 || Math.abs(r.top - n) > 50)
+          continue;
+        const s = Math.abs(n - r.top);
+        s < 30 && s < a && ((o = c), (a = s));
+      }
+      return o;
+    }
+    function Me(e) {
+      ((l = e), (te = e.getBoundingClientRect().top), (ne = 0), je());
+      const n = M();
+      n &&
+        (e.matches("a, [data-cursor]")
+          ? n.setAttribute("data-on-clickable", "")
+          : n.removeAttribute("data-on-clickable"));
+    }
+    function je() {
+      if (!l) return;
+      const e = l.getBoundingClientRect(),
+        n = e.top;
+      if (te !== 0) {
+        const t = Math.abs(n - te);
+        if (t > 1) {
+          ne += t;
+          const o = performance.now();
+          if (ne > 40 && o - Ue > 3000) {
+            const a = M();
+            (a && !g && !w && (f(a, St, 1600), (Ue = o)), (ne = 0));
+          }
+        }
+      }
+      ((te = n),
+        (F = window.innerHeight - e.top),
+        (Ee = Math.max(0, e.left + 4)),
+        (ze = Math.max(Ee + 4, e.right - T - 4)));
+    }
+    let X,
+      Te = null,
+      oe = true;
+    function Mt() {
+      ((X = undefined), (Te = null), (oe = true));
+    }
+    function Ve() {
+      oe = true;
+    }
+    (document.addEventListener("astro:page-load", Mt),
+      window.addEventListener("scroll", Ve, { passive: true }),
+      window.addEventListener("resize", Ve, { passive: true }));
+    function Tt() {
+      return (
+        X === undefined && (X = document.querySelector("footer[data-footer-root]")),
+        X ? (oe && ((Te = X.getBoundingClientRect()), (oe = false)), Te) : null
+      );
+    }
+    let $ = false,
+      Je = 0,
+      Ke = 0,
+      G = 0;
+    function ie() {
+      const e = F;
+      ((l = null), (F = 0), (Ke = performance.now()));
+      const n = M();
+      n && n.removeAttribute("data-on-clickable");
+      const t = document.querySelector("footer[data-footer-root]");
+      let o = 0;
+      if (t) {
+        const r = t.getBoundingClientRect();
+        r.top < window.innerHeight &&
+          r.bottom > 0 &&
+          (o = Math.max(0, window.innerHeight - r.top));
+      }
+      const a = Math.max(0, e - o + h),
+        c = window.innerHeight - N - o;
+      if (a > c) {
+        h = a;
+        const r = a - c;
+        (($ = false), (u = -Math.sqrt(2 * 9000 * r)));
+      } else ((h = a), ($ = true), (Je = performance.now() + 350), (u = 0));
+      C();
+    }
+    function C() {
+      if (v) {
+        ((he = 8), (fe = window.innerWidth - T - 8));
+        return;
+      }
+      const e = document.querySelector(".site-sidebar");
+      let n = 8,
+        t = 240;
+      if (e) {
+        const o = e.getBoundingClientRect();
+        o.right > 0 &&
+          o.left < window.innerWidth &&
+          ((n = Math.max(8, o.left + 8)),
+          (t = Math.min(window.innerWidth - T - 8, o.right - T - 8)));
+      }
+      ((he = n), (fe = Math.max(n + 4, t)));
+    }
+    try {
+      v = localStorage.getItem("sitepet:freeRoam") === "1";
+    } catch {}
+    (C(), window.addEventListener("resize", C, { passive: true }));
+    function O(e, n, t) {
+      return Math.max(n, Math.min(t, e));
+    }
+    function R(e) {
+      return w ? De : e;
+    }
+    function f(e, n, t = 1800) {
+      const o = e.querySelector("[data-pet-bubble]");
+      if (!o) return;
+      const a = n[Math.floor(Math.random() * n.length)];
+      (a.includes("\n")
+        ? (o.innerHTML = a.replace(/\n/g, "<br>"))
+        : (o.textContent = a),
+        o.setAttribute("data-show", ""),
+        me && window.clearTimeout(me),
+        (me = window.setTimeout(() => o.removeAttribute("data-show"), t)));
+    }
+    let Qe = false,
+      Ze = false;
+    function et(e, n) {
+      if (l) return;
+      const t = performance.now();
+      if (t - Fe < 600) return;
+      ((Fe = t),
+        e.style.setProperty("--pet-bump-dir", n === 1 ? "1" : "-1"),
+        e.setAttribute("data-bump", ""),
+        window.setTimeout(() => e.removeAttribute("data-bump"), 420));
+      const o = n === 1 ? "left" : "right",
+        a = o === "left" ? !Qe : !Ze;
+      (a && (o === "left" ? (Qe = true) : (Ze = true)),
+        (a || Math.random() < 0.05) && f(e, at, 1400));
+    }
+    function Pt() {
+      const e = Tt();
+      let n = 0;
+      if (
+        (e &&
+          e.top < window.innerHeight &&
+          e.bottom > 0 &&
+          (n = Math.max(0, window.innerHeight - e.top)),
+        l)
+      ) {
+        je();
+        const t = l.getBoundingClientRect(),
+          a =
+            t.top - N < -20 ||
+            t.top > window.innerHeight + 10 ||
+            t.width === 0 ||
+            t.height === 0;
+        if (!g && a && !Le) {
+          const c = M();
+          (c &&
+            performance.now() - G > 4000 &&
+            (f(c, R(de), 1800), (G = performance.now())),
+            ie(),
+            (y = n));
+          return;
+        }
+        y = F;
+      } else y = n;
+    }
+    let D = 0;
+    function ae(e) {
+      const n = Math.min(48, e - ue);
+      ue = e;
+      const t = M();
+      if (!t) {
+        D = requestAnimationFrame(ae);
+        return;
+      }
+      (Pt(), t.style.setProperty("--pet-ground", `${y}px`));
+      const o = e,
+        a = w && o < Z;
+      if (
+        (w &&
+          o >= Z &&
+          ((w = false),
+          t.removeAttribute("data-dizzy"),
+          t
+            .querySelector("[data-pet-emotes]")
+            ?.querySelectorAll(".site-pet-spin-star")
+            .forEach((d) => d.remove())),
+        !q && !g && !z && !a)
+      ) {
+        const r = it * (n / 1000),
+          d = l ? Ee : he,
+          s = l ? ze : fe;
+        if (p < d) ((p = Math.min(d, p + r)), (L = 1));
+        else if (p > s) ((p = Math.max(s, p - r)), (L = -1));
+        else if (
+          (Math.abs(S) > 8
+            ? ((p += S * (n / 1000)),
+              (S *= Math.pow(0.04, n / 1000)),
+              (L = S >= 0 ? 1 : -1))
+            : ((S = 0), (p += L * r)),
+          p <= d)
+        ) {
+          if (((p = d), L === -1))
+            if (l) {
+              const b = Xe(-1);
+              b
+                ? $e(b, -1)
+                : Math.random() < Ne &&
+                  (performance.now() - G > 4000 &&
+                    (f(t, R(de), 1800), (G = performance.now())),
+                  ie());
+            } else et(t, 1);
+          L = 1;
+        } else if (p >= s) {
+          if (((p = s), L === 1))
+            if (l) {
+              const b = Xe(1);
+              b
+                ? $e(b, 1)
+                : Math.random() < Ne &&
+                  (performance.now() - G > 4000 &&
+                    (f(t, R(de), 1800), (G = performance.now())),
+                  ie());
+            } else et(t, -1);
+          L = -1;
+        }
+      }
+      if (!g)
+        if ($) e >= Je && (($ = false), (u = 0));
+        else {
+          const r = n / 1000,
+            d = !l && u <= 0 && h > 40,
+            s = u > 0 ? 2000 : d ? 9000 : 3200;
+          ((u -= s * r), (h += u * r), (Ae = (Ae + 1) % vt));
+          const b = performance.now() - Ke < 700;
+          if (!l && u < 0 && !w && !b && Ae === 0) {
+            const H = window.innerHeight - y - h,
+              A = Re(p, H);
+            if (A) {
+              const E = A.getBoundingClientRect(),
+                re = window.innerHeight - E.top,
+                i = y + h;
+              if (Math.abs(i - re) < 20) {
+                if (
+                  (Me(A),
+                  (h = 0),
+                  (S *= 0.3),
+                  (u = 0),
+                  (ke = performance.now()),
+                  !v)
+                ) {
+                  v = true;
+                  try {
+                    localStorage.setItem("sitepet:freeRoam", "1");
+                  } catch {}
+                }
+                f(t, R(ce), 2200);
+              }
+            }
+          }
+          h <= 0 &&
+            (w && u < -100 && (Z = performance.now() + 2200),
+            (h = 0),
+            u < -160 ? (u = -u * 0.1) : (u = 0));
+        }
+      (t.style.setProperty("--pet-x", `${p}px`),
+        t.style.setProperty("--pet-y", `${h}px`),
+        t.style.setProperty("--pet-flip", L === 1 ? "1" : "-1"));
+      const c = t.querySelector(".site-pet__eyes");
+      if (c && Q > -9999) {
+        const r = p + T / 2,
+          d = window.innerHeight - y - h - N / 2,
+          s = Q - r,
+          b = Ge - d,
+          H = Math.hypot(s, b) || 1,
+          A = O((s / H) * 1.4, -1.4, 1.4),
+          E = O((b / H) * 1, -1, 1);
+        c.style.transform = `translate(${A.toFixed(2)}px, ${E.toFixed(2)}px)`;
+      }
+      D = requestAnimationFrame(ae);
+    }
+    ((D = requestAnimationFrame(ae)),
+      document.addEventListener("visibilitychange", () => {
+        document.hidden
+          ? (cancelAnimationFrame(D), (D = 0))
+          : D || ((ue = performance.now()), (D = requestAnimationFrame(ae)));
+      }),
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          ((Q = e.clientX), (Ge = e.clientY));
+        },
+        { passive: true },
+      ));
+    let Pe = window.scrollY,
+      He = 0;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (
+          ((Le = true),
+          He && window.clearTimeout(He),
+          (He = window.setTimeout(() => {
+            Le = false;
+          }, 150)),
+          z || g || l)
+        ) {
+          Pe = window.scrollY;
+          return;
+        }
+        const e = window.scrollY - Pe;
+        Pe = window.scrollY;
+        const n = Math.min(400, Math.abs(e));
+        if (n < 2 || h > 6) return;
+        const t = Math.min(520, Math.sqrt(n) * 26);
+        u = Math.min(560, Math.max(u, t));
+      },
+      { passive: true },
+    );
+    
+    function Ht(e) {
+      if (e.dataset.wired === "1") return;
+      e.dataset.wired = "1";
+      const n = e.querySelector("[data-pet-hit]"),
+        t = e.querySelector("[data-pet-emotes]");
+      if (!n) return;
+      const o = 6;
+      function a() {
+        z ||
+          (e.setAttribute("data-hopping", ""),
+          e.setAttribute("data-blink", ""),
+          window.setTimeout(() => e.removeAttribute("data-hopping"), 520),
+          window.setTimeout(() => e.removeAttribute("data-blink"), 180));
+      }
+      function c() {
+        if (
+          !w &&
+          ((w = true),
+          (Z = performance.now() + 2200),
+          e.setAttribute("data-dizzy", ""),
+          f(e, De, 2000),
+          t)
+        )
+          for (let i = 0; i < 3; i++) {
+            const m = document.createElement("span");
+            ((m.className = "site-pet-spin-star"),
+              (m.style.animationDelay = `${-i * 0.3}s`),
+              t.appendChild(m));
+          }
+      }
+      const r =
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 10 A4 4 0 1 0 2 6"/></svg>';
+      function d() {
+        if (!t || z) return;
+        const i = document.createElement("span");
+        ((i.className = "site-pet-swirl"),
+          (i.innerHTML = r),
+          i.style.setProperty("--swirl-dx", `${(Math.random() - 0.5) * 32}px`),
+          t.appendChild(i),
+          window.setTimeout(() => i.remove(), 1000));
+      }
+      (n.addEventListener("pointerenter", () => {
+        if (g) return;
+        ((q = true), e.setAttribute("data-paused", ""));
+        const i = e.getBoundingClientRect();
+        ((L = Q < i.left + i.width / 2 ? -1 : 1),
+          window.clearTimeout(ye),
+          (ye = window.setTimeout(() => {
+            q && !g && !w && f(e, ut, 1600);
+          }, 260)));
+      }),
+        n.addEventListener("pointerleave", () => {
+          g ||
+            ((q = false), e.removeAttribute("data-paused"), window.clearTimeout(ye));
+        }),
+        n.addEventListener("pointerdown", (i) => {
+          (i.button !== undefined && i.button !== 0) ||
+            ((B = true),
+            (K = { x: i.clientX, y: i.clientY, t: performance.now() }),
+            (U = i.pointerId),
+            n.setPointerCapture(i.pointerId),
+            (k.length = 0),
+            k.push({ t: K.t, x: i.clientX, y: i.clientY }),
+            (x.length = 0),
+            (ee = 0));
+        }),
+        n.addEventListener("pointermove", (i) => {
+          if (!B || i.pointerId !== U) return;
+          const m = performance.now();
+          for (
+            k.push({ t: m, x: i.clientX, y: i.clientY });
+            k.length > 2 && m - k[0].t > 140;
+          )
+            k.shift();
+          if (!g) {
+            const W = K,
+              Ct = i.clientX - W.x;
+            if (i.clientY - W.y < -o || Math.abs(Ct) > o * 2) {
+              if (((g = true), l)) {
+                const Dt = y;
+                ((l = null), (F = 0), (h = h + Dt), (y = 0));
+              }
+              const ot = e.getBoundingClientRect();
+              ((qe = W.x - ot.left),
+                (Be = W.y - ot.top),
+                e.setAttribute("data-dragging", ""),
+                e.setAttribute("data-paused", ""),
+                f(e, ht, 2200));
+            } else return;
+          }
+          const P = i.clientX - qe,
+            Y = i.clientY - Be;
+          p = O(P, 4, window.innerWidth - T - 4);
+          const I = window.innerHeight - Y - N - y;
+          h = O(I, 0, Math.max(0, window.innerHeight - N - y - 4));
+          const V = i.movementX ?? 0,
+            J = Math.sign(V);
+          if (Math.abs(V) > 2 && J !== 0) {
+            if (ee !== 0 && J !== ee) {
+              for (x.push(m); x.length && m - x[0] > 600; ) x.shift();
+              (w || d(), x.length >= 4 && (c(), (x.length = 0)));
+            }
+            ee = J;
+          }
+        }));
+      const s = (i) => {
+        if (!(!B || i.pointerId !== U)) {
+          if (((B = false), (U = null), g)) {
+            if (
+              ((g = false),
+              e.removeAttribute("data-dragging"),
+              e.removeAttribute("data-paused"),
+              k.length >= 2)
+            ) {
+              const Y = k[0],
+                I = k[k.length - 1],
+                V = Math.max(8, I.t - Y.t),
+                J = ((I.x - Y.x) / V) * 1000 * 0.55,
+                W = ((I.y - Y.y) / V) * 1000 * 0.55;
+              ((S = O(J, -500, 500)), (u = O(-W, -420, 420)));
+            } else ((S = 0), (u = 0));
+            const m = window.innerHeight - y - h,
+              P = Re(p, m);
+            if (P && !w) {
+              if (((S = 0), (u = 0), Me(P), (h = 0), !v)) {
+                v = true;
+                try {
+                  localStorage.setItem("sitepet:freeRoam", "1");
+                } catch {}
+              }
+              f(e, R(ce), 2200);
+            } else {
+              l && ie();
+              const I =
+                document.querySelector(".site-sidebar")?.getBoundingClientRect()
+                  .right ?? 0;
+              if (p > I + 20)
+                if (v) f(e, R(se), 1400);
+                else {
+                  v = true;
+                  try {
+                    localStorage.setItem("sitepet:freeRoam", "1");
+                  } catch {}
+                  (C(),
+                    f(
+                      e,
+                      [
+                        "ooo i've never been here before",
+                        "whoa... the world is big",
+                        "first time out here",
+                        "oh! outside",
+                      ],
+                      2400,
+                    ));
+                }
+              else if (v) {
+                v = false;
+                try {
+                  localStorage.setItem("sitepet:freeRoam", "0");
+                } catch {}
+                (C(),
+                  f(
+                    e,
+                    R(["back home", "cozy in here", "okay okay i'll stay"]),
+                    1400,
+                  ));
+              } else f(e, R(se), 1400);
+            }
+          } else {
+            const m = performance.now();
+            (m - Oe > 5000 && (be = 0),
+              (be += 1),
+              (_ += 1),
+              (Oe = m),
+              a(),
+              !Ce && _ > 0
+                ? ((Ce = true),
+                  f(
+                    e,
+                    [
+                      `this is the ${_}${_ === 1 ? "st" : _ === 2 ? "nd" : _ === 3 ? "rd" : "th"} time\nsomeone has poked me :(`,
+                    ],
+                    2400,
+                  ))
+                : f(e, dt(be), 1400));
+          }
+          K = null;
+        }
+      };
+      (n.addEventListener("pointerup", s),
+        n.addEventListener("pointercancel", s),
+        window.addEventListener("pointerup", (i) => {
+          if (!(!B && !g) && ((B = false), (U = null), g)) {
+            ((g = false),
+              e.removeAttribute("data-dragging"),
+              e.removeAttribute("data-paused"));
+            const m = window.innerHeight - y - h,
+              P = Re(p, m);
+            if (P && !w) {
+              if (((S = 0), (u = 0), Me(P), (h = 0), !v)) {
+                v = true;
+                try {
+                  localStorage.setItem("sitepet:freeRoam", "1");
+                } catch {}
+              }
+              f(e, R(ce), 2200);
+            } else ((u = 0), f(e, R(se), 1200));
+          }
+        }));
+      function b() {
+        pe && window.clearTimeout(pe);
+        const i = 3000 + Math.random() * 4000;
+        pe = window.setTimeout(() => {
+          (!w &&
+            !e.hasAttribute("data-blink") &&
+            (e.setAttribute("data-blink", ""),
+            window.setTimeout(() => e.removeAttribute("data-blink"), 160)),
+            b());
+        }, i);
+      }
+      b();
+      function H() {
+        if (!l) return le;
+        for (const i of yt)
+          if (l.matches(i.match)) return Math.random() < 0.5 ? i.phrases : le;
+        return le;
+      }
+      function A() {
+        if (l) return H();
+        const i = window.location.pathname;
+        if (i.startsWith("/work/")) {
+          const m = mt[i] ?? [];
+          return m.length ? [...Ie, ...m] : Ie;
+        }
+        return i.startsWith("/playground")
+          ? pt
+          : i.startsWith("/about")
+            ? gt
+            : i.startsWith("/visitor-gallery")
+              ? wt
+              : ft;
+      }
+      let E = 0;
+      function re() {
+        ge && window.clearTimeout(ge);
+        const i = 18000 + Math.random() * 16000;
+        ge = window.setTimeout(() => {
+          const m = Date.now();
+          (!q && !g && !w && m - E >= 15000 && (f(e, A(), 2200), (E = m)), re());
+        }, i);
+      }
+      (we && window.clearTimeout(we),
+        (we = window.setTimeout(() => {
+          (!q && !g && !w && (f(e, A(), 2200), (E = Date.now())), re());
+        }, 12000)));
+    }
+    const tt = "sitepet:hat",
+      _t = ["none", "bucket", "top", "cap", "sprout", "party"];
+    function _e() {
+      try {
+        const e = localStorage.getItem(tt);
+        if (e && _t.includes(e)) return e;
+      } catch {}
+      return "none";
+    }
+    function xe(e) {
+      const n = M();
+      if (!n) return;
+      e === "none"
+        ? n.removeAttribute("data-hat")
+        : n.setAttribute("data-hat", e);
+      const t = document.querySelector("[data-hat-rack]");
+      if (t) {
+        (e === "none"
+          ? t.removeAttribute("data-has-hat")
+          : t.setAttribute("data-has-hat", ""),
+          t.querySelectorAll("[data-hat-choice]").forEach((a) => {
+            const el = a as HTMLElement;
+            el.dataset.hatChoice === e
+              ? el.setAttribute("data-selected", "")
+              : el.removeAttribute("data-selected");
+          }));
+        const o = t.querySelector("[data-rack-preview-slot]");
+        if (o && ((o.innerHTML = ""), e !== "none")) {
+          const a = t.querySelector(`[data-hat-choice="${e}"] svg`);
+          if (a) {
+            const c = a.cloneNode(true);
+            o.appendChild(c);
+          }
+        }
+      }
+    }
+    function j(e) {
+      const n = document.querySelector("[data-toc]");
+      if (!n) {
+        e.style.display = "none";
+        return;
+      }
+      e.style.display = "";
+      const t = n.getBoundingClientRect();
+      if (t.width === 0) return;
+      const o = 26,
+        a = 22,
+        c = t.left + t.width - o - 12,
+        r = t.top - a;
+      (e.style.setProperty("--rack-x", `${Math.round(c)}px`),
+        e.style.setProperty("--rack-y", `${Math.round(r)}px`));
+    }
+    function xt() {
+      if (!window.visitorDb && !document.querySelector('script[src="/js/db.js"]')) {
+        const s = document.createElement("script");
+        s.src = "/js/db.js";
+        s.async = true;
+        document.head.appendChild(s);
+      }
+
+      const e = document.querySelector("[data-hat-rack]") as HTMLElement;
+      if (!e) return;
+      if ((j(e), e.dataset.wired === "1")) {
+        xe(_e());
+        return;
+      }
+      ((e.dataset.wired = "1"),
+        e.querySelectorAll("[data-hat-choice]").forEach((o) => {
+          const el = o as HTMLElement;
+          el.addEventListener("click", (a) => {
+            a.stopPropagation();
+            const c = _e(),
+              r = el.dataset.hatChoice || "none";
+            try {
+              localStorage.setItem(tt, r);
+            } catch {}
+            (xe(r),
+              c !== r &&
+                (window.visitorDb ? window.visitorDb.registerHatPick(c, r) : setTimeout(() => window.visitorDb && window.visitorDb.registerHatPick(c, r), 200)),
+              e.removeAttribute("data-open"),
+              e.setAttribute("data-hat-picked", ""),
+              document.activeElement && (document.activeElement as HTMLElement).blur && (document.activeElement as HTMLElement).blur());
+            const d = M();
+            d &&
+              !z &&
+              (d.setAttribute("data-hopping", ""),
+              window.setTimeout(() => d.removeAttribute("data-hopping"), 520));
+          });
+        }),
+        e.querySelector("[data-rack-toggle]")?.addEventListener("click", (o) => {
+          (o.stopPropagation(),
+            e.hasAttribute("data-open")
+              ? e.removeAttribute("data-open")
+              : e.setAttribute("data-open", ""));
+        }),
+        e.addEventListener("pointerleave", () =>
+          e.removeAttribute("data-hat-picked"),
+        ),
+        document.addEventListener("click", (o) => {
+          if (!e.hasAttribute("data-open")) return;
+          const a = o.target;
+          (a instanceof Node && e.contains(a)) || e.removeAttribute("data-open");
+        }),
+        window.addEventListener("resize", () => j(e), { passive: true }),
+        window.addEventListener("scroll", () => j(e), { passive: true }));
+      const t = document.querySelector("[data-sidebar]");
+      (t && t.addEventListener("scroll", () => j(e), { passive: true }),
+        window.setTimeout(() => j(e), 300),
+        xe(_e()));
+    }
+    function nt() {
+      C();
+      const e = M();
+      (e && Ht(e), xt());
+    }
+    (nt(), document.addEventListener("astro:page-load", nt));
+  }
+</script>

@@ -1,0 +1,346 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import CustomCursor from '../components/CustomCursor.astro';
+import SparkBurst from '../components/SparkBurst.astro';
+import SignatureCard from '../components/SignatureCard.astro';
+import CardColorPicker from '../components/CardColorPicker.astro';
+import '../styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sign the visitor deck before entering Abhay's portfolio showcase.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap">
+  <title>Sign in — Abhay's World</title>
+  <script is:inline define:vars={{
+    firebaseConfig: {
+      apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
+      authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.PUBLIC_FIREBASE_APP_ID
+    }
+  }}>
+    if (firebaseConfig.apiKey) {
+      window.firebaseConfig = firebaseConfig;
+    }
+  </script>
+  <script src="/js/db.js" is:inline></script>
+  <ClientRouter />
+  
+  <style>
+    html {
+      background: var(--color-ink) !important;
+    }
+    .sunrise {
+      position: absolute;
+      left: 50vw;
+      top: 50vh;
+      width: 220vmax;
+      height: 220vmax;
+      border-radius: 50%;
+      background-color: var(--color-bg);
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .sunrise.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #visitor-form {
+      opacity: 0;
+      animation: fade-in 0.45s var(--ease-out-soft) 0.15s forwards;
+    }
+    @keyframes fade-in {
+      to { opacity: 1; }
+    }
+    .wallet-overlay {
+      transition: opacity 0.35s var(--ease-out-soft);
+    }
+    .wallet-overlay[data-open] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-ink)] text-[var(--color-ink)] font-body selection:bg-[var(--color-bg-neutral)]">
+  <div class="relative min-h-screen overflow-hidden flex flex-col items-center">
+    
+    <!-- Sunrise spotlight layer. Renders at full cover to bridge the landing screen transition -->
+    <div aria-hidden="true" data-sunrise class="sunrise absolute rounded-full bg-[var(--color-bg)] pointer-events-none z-0"></div>
+
+    <!-- Back Button -->
+    <a href="/" data-back-link aria-label="Back to welcome" class="group absolute top-5 left-5 z-10 flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] transition-colors select-none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out-soft)] group-hover:-translate-x-1">
+        <path d="M19 12H5"></path>
+        <path d="M12 19l-7-7 7-7"></path>
+      </svg>
+      Back
+    </a>
+
+    <!-- Main Customizer Form -->
+    <form id="visitor-form" novalidate class="relative w-full max-w-[500px] flex flex-col items-center gap-6 sm:gap-8 text-[var(--color-ink)] my-auto px-4 py-8 z-10 select-none">
+      <header class="font-mono text-xs sm:text-sm uppercase text-center w-full leading-none tracking-widest">
+        <p class="text-[var(--color-ink)] font-bold text-sm">Welcome, visitor.</p>
+        <p class="text-[var(--color-ink-dim)] mt-2">I hope you enjoy your time here.</p>
+      </header>
+
+      <!-- Visitor Name Row -->
+      <div class="flex items-center gap-3 sm:gap-4 w-full">
+        <label for="visitor-name" class="font-mono text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap">
+          Name:
+        </label>
+        <div class="flex-1 min-w-0 flex items-center gap-2">
+          <input id="visitor-name" name="name" type="text" required autocomplete="off" spellcheck="false" maxlength="25" placeholder="Visitor Name" class="flex-1 min-w-0 bg-[var(--color-bg-white)] rounded-[12px] px-3.5 py-2.5 font-mono text-xs sm:text-sm uppercase text-[var(--color-ink-dim)] focus:text-[var(--color-ink)] outline-none border border-black/5 focus:border-[var(--color-bg-neutral-2)] transition-colors shadow-inner">
+          
+          <button type="button" data-shuffle aria-label="Shuffle name" class="bg-[var(--color-bg-neutral)] border border-black/5 hover:border-[var(--color-bg-neutral-2)] rounded-[10px] px-2.5 py-2.5 text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] transition-all active:scale-95 shrink-0">
+            <svg class="shuffle-icon transition-transform size-4" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+              <path d="M21 3v5h-5"></path>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+              <path d="M3 21v-5h5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <p class="font-mono text-[9px] uppercase tracking-widest text-[var(--color-ink-dim)] text-center">
+        Draw on the card to sign it
+      </p>
+
+      <!-- Signature card -->
+      <div class="card-scale-wrap overflow-hidden flex justify-center w-full">
+        <SignatureCard />
+      </div>
+
+      <!-- Color picker and Pen/Eraser tool selection -->
+      <CardColorPicker />
+
+      <div class="flex flex-col items-center gap-3">
+        <button type="submit" class="btn-springy font-mono inline-flex items-center justify-center px-6 py-3.5 rounded-[14px] bg-[var(--color-pink)] text-white text-[14px] uppercase tracking-wider leading-none whitespace-nowrap">
+          enter →
+        </button>
+        <p class="font-mono text-[10px] text-[var(--color-ink-mute)] tracking-wider text-center leading-relaxed">
+          Your card will appear in the visitor gallery.
+        </p>
+        <p data-submit-error class="font-mono text-xs text-[var(--color-pink)] opacity-0 transition-opacity" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <!-- Wallet Slide Transition overlay drawer -->
+    <div data-wallet-overlay aria-hidden="true" class="wallet-overlay fixed inset-0 z-50 grid place-items-center pointer-events-none opacity-0">
+      <!-- Cream background grows to block form view on final submit -->
+      <div data-wallet-bg class="absolute inset-0 bg-[var(--color-bg)] opacity-0 transition-opacity duration-300"></div>
+      
+      <!-- Target slide deck -->
+      <div data-wallet-track class="relative w-full h-[252px] flex items-center justify-center overflow-visible"></div>
+    </div>
+
+    <!-- Active Custom Cursor -->
+    <CustomCursor />
+
+    <!-- Click Canvas Sparks -->
+    <SparkBurst />
+  </div>
+
+  <script type="module" is:inline>
+    (function() {
+      // Setup Sunrise active animation
+      function initSunrise() {
+        const sunrise = document.querySelector("[data-sunrise]");
+        if (sunrise) {
+          sunrise.classList.remove("active");
+          void sunrise.offsetWidth; // Force layout calculation reflow
+          sunrise.classList.add("active");
+        }
+      }
+      initSunrise();
+      document.addEventListener("astro:page-load", initSunrise);
+
+      const form = document.getElementById("visitor-form");
+      const nameInput = document.getElementById("visitor-name");
+      const shuffleBtn = document.querySelector("[data-shuffle]");
+      const cardNameDisplay = document.querySelector("[data-card-name]");
+      const cardDateDisplay = document.querySelector("[data-card-date]");
+      const cardNumDisplay = document.querySelector("[data-card-number]");
+      const errDisplay = document.querySelector("[data-submit-error]");
+
+      // Setup initial date and card number
+      if (cardDateDisplay) {
+        const today = new Date();
+        const d = String(today.getDate()).padStart(2, "0");
+        const m = String(today.getMonth() + 1).padStart(2, "0");
+        const y = String(today.getFullYear()).slice(-2);
+        cardDateDisplay.textContent = `${m}/${d}/${y}`;
+      }
+
+      const cardNum = Math.floor(1000 + Math.random() * 8999);
+      if (cardNumDisplay) {
+        cardNumDisplay.textContent = `No. ${cardNum}`;
+      }
+
+      // Sync name input to card rendering
+      nameInput?.addEventListener("input", (e) => {
+        const text = e.target.value.trim();
+        if (cardNameDisplay) {
+          cardNameDisplay.textContent = text || "Visitor";
+        }
+      });
+
+      // Shuffling developer names
+      const SHUFFLE_NAMES = [
+        "Code Wizard", "Bug Hunter", "AI Whisperer", "Byte Slinger", 
+        "Data Wrangler", "Fullstack Fan", "Kernel Cook", "Git Pusher",
+        "Stack Surfer", "ML Explorer", "Logic Sculptor", "Cyber Ranger"
+      ];
+      
+      if (shuffleBtn) {
+        shuffleBtn.addEventListener("click", () => {
+          const icon = shuffleBtn.querySelector(".shuffle-icon");
+          if (icon) {
+            icon.classList.add("animate-spin-slow");
+            setTimeout(() => icon.classList.remove("animate-spin-slow"), 500);
+          }
+          
+          const chosen = SHUFFLE_NAMES[Math.floor(Math.random() * SHUFFLE_NAMES.length)];
+          if (nameInput) {
+            nameInput.value = chosen;
+            nameInput.dispatchEvent(new Event("input"));
+          }
+        });
+      }
+
+      // Handle submission transition
+      form?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        const nameVal = nameInput?.value.trim();
+        if (!nameVal) {
+          if (errDisplay) {
+            errDisplay.textContent = "Please enter a name first.";
+            errDisplay.style.opacity = "1";
+          }
+          return;
+        }
+
+        // Request signature PNG from SignatureCard pad
+        window.dispatchEvent(new CustomEvent("card:request-signature"));
+      });
+
+      // Capture drawing data base64 png
+      window.addEventListener("card:signature-ready", async (e) => {
+        const base64Signature = e.detail.dataUrl;
+        const hasDrawn = e.detail.hasDrawn;
+
+        if (!hasDrawn) {
+          if (errDisplay) {
+            errDisplay.textContent = "Please draw your signature first.";
+            errDisplay.style.opacity = "1";
+          }
+          return;
+        }
+
+        if (errDisplay) errDisplay.style.opacity = "0";
+
+        // Disable submit button during save to avoid double clicks
+        const submitBtn = form.querySelector("button[type='submit']");
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "saving...";
+        }
+
+        // Save card structure locally/Firestore
+        const colorVal = document.getElementById("library-card").getAttribute("data-color") || "indigo";
+        const dateVal = cardDateDisplay.textContent;
+        const nameVal = nameInput.value.trim();
+        
+        const visitorCard = {
+          name: nameVal,
+          color: colorVal,
+          date: dateVal,
+          number: cardNum,
+          signature: base64Signature,
+          timestamp: new Date().toISOString()
+        };
+
+        try {
+          const savedCard = await window.visitorDb.saveCard(visitorCard);
+          sessionStorage.setItem("current_visitor", JSON.stringify(savedCard));
+          
+          // Increment hat pick baseline if pet wears a hat
+          const currentHat = localStorage.getItem("sitepet:hat") || "none";
+          if (currentHat !== "none") {
+            await window.visitorDb.registerHatPick(null, currentHat);
+          }
+        } catch (err) {
+          console.error("Failed to save card:", err);
+        }
+
+        // Trigger Wallet Transition
+        triggerWalletSubmitTransition();
+      });
+
+      function triggerWalletSubmitTransition() {
+        const overlay = document.querySelector("[data-wallet-overlay]");
+        const overlayBg = document.querySelector("[data-wallet-bg]");
+        const track = document.querySelector("[data-wallet-track]");
+        const activeCard = document.getElementById("library-card");
+
+        if (!overlay || !track || !activeCard) {
+          // Fallback if transition elements missing
+          window.location.href = "/home";
+          return;
+        }
+
+        // Clone active card for animation track
+        const clone = activeCard.cloneNode(true);
+        // Wipe canvas overlay from clone
+        const canvasWrap = clone.querySelector("[data-signature-wrap]");
+        if (canvasWrap) canvasWrap.remove();
+        
+        // Re-inject the actual canvas drawing onto the cloned card as an image
+        const img = document.createElement("img");
+        img.src = sessionStorage.getItem("current_visitor") ? JSON.parse(sessionStorage.getItem("current_visitor")).signature : "";
+        img.className = "absolute inset-0 size-full pointer-events-none select-none";
+        clone.appendChild(img);
+
+        track.appendChild(clone);
+        
+        // Lock screen inputs
+        document.body.style.pointerEvents = "none";
+        
+        // Show transitions
+        overlay.setAttribute("data-open", "");
+        overlay.style.opacity = "1";
+        overlayBg.style.opacity = "1";
+
+        // Slide card downwards mimic pocket drawer slide
+        clone.animate([
+          { transform: "translateY(-400px) scale(0.9)", opacity: 0 },
+          { transform: "translateY(0) scale(1)", opacity: 1 },
+          { transform: "translateY(50px) scale(0.95)", opacity: 0.8 }
+        ], {
+          duration: 900,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          fill: "forwards"
+        });
+
+        // Redirect to /home after animation completes
+        setTimeout(() => {
+          document.body.style.pointerEvents = "auto";
+          const link = document.createElement("a");
+          link.href = "/home";
+          document.body.appendChild(link);
+          link.click();
+        }, 1100);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+---
+---
+<div class="flex items-center gap-4 sm:gap-6 flex-wrap justify-center my-4 select-none">
+  <!-- Card Color Picker -->
+  <fieldset class="card-color-picker flex items-center gap-4" data-color-picker data-name="card-color">
+    <legend class="sr-only">Card color</legend>
+    
+    <!-- Teal Option -->
+    <label class="cursor-pointer p-1" data-cursor="dot">
+      <input type="radio" name="card-color" value="teal" class="sr-only peer">
+      <span aria-hidden="true" class="block size-[24px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-125 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)] bg-[var(--color-teal)]"></span>
+      <span class="sr-only">Teal</span>
+    </label>
+
+    <!-- Green Option -->
+    <label class="cursor-pointer p-1" data-cursor="dot">
+      <input type="radio" name="card-color" value="green" class="sr-only peer">
+      <span aria-hidden="true" class="block size-[24px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-125 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)] bg-[var(--color-green)]"></span>
+      <span class="sr-only">Green</span>
+    </label>
+
+    <!-- Indigo Option (Default Checked) -->
+    <label class="cursor-pointer p-1" data-cursor="dot">
+      <input type="radio" name="card-color" value="indigo" checked class="sr-only peer">
+      <span aria-hidden="true" class="block size-[24px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-125 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)] bg-[var(--color-pink)]"></span>
+      <span class="sr-only">Indigo</span>
+    </label>
+
+    <!-- Orange Option -->
+    <label class="cursor-pointer p-1" data-cursor="dot">
+      <input type="radio" name="card-color" value="orange" class="sr-only peer">
+      <span aria-hidden="true" class="block size-[24px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-125 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)] bg-[var(--color-orange)]"></span>
+      <span class="sr-only">Orange</span>
+    </label>
+  </fieldset>
+
+  <!-- Pen / Eraser Drawing Tool Toggle -->
+  <div role="radiogroup" aria-label="Drawing tool" data-tool-toggle class="flex items-center gap-1 bg-[var(--color-bg-neutral)] rounded-[8px] p-1 border border-black/5">
+    <button type="button" data-tool="pen" aria-label="Pen" aria-pressed="true" class="size-7 rounded-[6px] grid place-items-center text-[var(--color-ink-dim)] transition-colors data-[active]:bg-[var(--color-bg-white)] data-[active]:text-[var(--color-ink)]" data-active>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+        <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+        <path d="M2 2l7.586 7.586"></path>
+        <circle cx="11" cy="11" r="2"></circle>
+      </svg>
+    </button>
+    <button type="button" data-tool="eraser" aria-label="Eraser" aria-pressed="false" class="size-7 rounded-[6px] grid place-items-center text-[var(--color-ink-dim)] transition-colors data-[active]:bg-[var(--color-bg-white)] data-[active]:text-[var(--color-ink)]">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 20H7l-4-4 12-12 8 8-8 8"></path>
+        <path d="M14 4l8 8"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script type="module" is:inline>
+(function() {
+  function initColorAndToolPickers() {
+    const card = document.getElementById("library-card");
+    const colorPicker = document.querySelector("[data-color-picker]");
+    const toolToggle = document.querySelector("[data-tool-toggle]");
+    if (!card) return;
+
+    // Handle color picker checks
+    if (colorPicker) {
+      colorPicker.querySelectorAll("input[type='radio']").forEach(radio => {
+        radio.addEventListener("change", (e) => {
+          if (e.target.checked) {
+            const color = e.target.value;
+            card.setAttribute("data-color", color);
+            
+            // Set custom cursor color matching the card color
+            const customCursor = document.querySelector("[data-custom-cursor]");
+            if (customCursor) {
+              customCursor.setAttribute("data-color", color);
+            }
+          }
+        });
+      });
+    }
+
+    // Handle pen vs eraser tools
+    if (toolToggle) {
+      const penBtn = toolToggle.querySelector("[data-tool='pen']");
+      const eraserBtn = toolToggle.querySelector("[data-tool='eraser']");
+
+      function selectTool(tool) {
+        if (tool === "pen") {
+          penBtn.setAttribute("data-active", "");
+          penBtn.setAttribute("aria-pressed", "true");
+          eraserBtn.removeAttribute("data-active");
+          eraserBtn.setAttribute("aria-pressed", "false");
+        } else {
+          eraserBtn.setAttribute("data-active", "");
+          eraserBtn.setAttribute("aria-pressed", "true");
+          penBtn.removeAttribute("data-active");
+          penBtn.setAttribute("aria-pressed", "false");
+        }
+        
+        // Dispatch tool change to SignatureCard
+        window.dispatchEvent(new CustomEvent("card:tool-change", {
+          detail: { tool: tool }
+        }));
+      }
+
+      penBtn?.addEventListener("click", () => selectTool("pen"));
+      eraserBtn?.addEventListener("click", () => selectTool("eraser"));
+    }
+  }
+
+  initColorAndToolPickers();
+  document.addEventListener("astro:page-load", initColorAndToolPickers);
+})();
+</script>

@@ -1,0 +1,160 @@
+---
+// Generate random stars for the three layers at BUILD TIME
+const generateStars = (count: number, sizeRange: [number, number]) => {
+  return Array.from({ length: count }, () => {
+    const left = (Math.random() * 100).toFixed(4);
+    const top = (Math.random() * 100).toFixed(4);
+    const size = (sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0])).toFixed(1);
+    const opacity = (0.2 + Math.random() * 0.5).toFixed(2);
+    const delay = (Math.random() * 15).toFixed(2);
+    return { left, top, size, opacity, delay };
+  });
+};
+
+const farStars = generateStars(65, [1.0, 1.5]);
+const midStars = generateStars(28, [1.5, 2.0]);
+const nearStars = generateStars(14, [2.0, 2.5]);
+---
+<div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden select-none">
+  <!-- Decorative space markers -->
+  <div class="pointer-events-none absolute inset-0 overflow-hidden text-2xl text-[#aba695]/40 font-mono">
+    <span class="absolute" style="left: 12.5%; top: 48.9%;">
+      <span class="text-[var(--color-pink)] animate-pulse">⊹</span> ࣪ ˖
+    </span>
+    <span class="absolute" style="left: 73.3%; top: 82.1%;">
+      ⋆.<span class="text-[var(--color-teal)]">˚</span>
+    </span>
+    <span class="absolute" style="left: 84.4%; top: 24.3%;">
+      ˚<span class="text-[var(--color-orange)]">.</span>⋆
+    </span>
+  </div>
+
+  <!-- Far layer — slowest, counter-clockwise -->
+  <div class="starfield starfield--far absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vmax] h-[150vmax]">
+    {farStars.map(s => (
+      <span class="star absolute rounded-full bg-white" style={`left:${s.left}%;top:${s.top}%;width:${s.size}px;height:${s.size}px;opacity:${s.opacity};animation-delay:${s.delay}s;`}></span>
+    ))}
+  </div>
+
+  <!-- Mid layer — clockwise -->
+  <div class="starfield starfield--mid absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vmax] h-[150vmax]">
+    {midStars.map(s => (
+      <span class="star absolute rounded-full bg-white" style={`left:${s.left}%;top:${s.top}%;width:${s.size}px;height:${s.size}px;opacity:${s.opacity};animation-delay:${s.delay}s;`}></span>
+    ))}
+  </div>
+
+  <!-- Near layer — fastest, counter-clockwise -->
+  <div class="starfield starfield--near absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vmax] h-[150vmax]">
+    {nearStars.map(s => (
+      <span class="star absolute rounded-full bg-white" style={`left:${s.left}%;top:${s.top}%;width:${s.size}px;height:${s.size}px;opacity:${s.opacity};animation-delay:${s.delay}s;`}></span>
+    ))}
+  </div>
+</div>
+
+<div data-shooting-stars class="pointer-events-none absolute inset-0 overflow-hidden"></div>
+
+<style>
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.6 }
+  50% { opacity: 1 }
+}
+
+.starfield--far { animation: 360s linear infinite starfield-far; }
+.starfield--mid { animation: 260s linear infinite starfield-mid; }
+.starfield--near { animation: 190s linear infinite starfield-near; }
+
+@keyframes starfield-far { to { transform: translate(-50%, -50%) rotate(-360deg); } }
+@keyframes starfield-mid { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes starfield-near { to { transform: translate(-50%, -50%) rotate(-360deg); } }
+
+.star {
+  box-shadow: 0 0 3px rgba(255,255,255,0.7);
+  animation: star-twinkle 8s ease-in-out infinite;
+}
+
+.starfield--near .star {
+  box-shadow: 0 0 4px rgba(255,255,255,0.9);
+}
+
+@keyframes shoot {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--shoot-angle)); opacity: 0; }
+  8% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate3d(var(--shoot-dx), var(--shoot-dy), 0) rotate(var(--shoot-angle)); opacity: 0; }
+}
+
+.shooting-star {
+  position: absolute;
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  letter-spacing: .12em;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: left center;
+  animation: shoot var(--shoot-duration) cubic-bezier(0.16, 0.84, 0.44, 1) forwards;
+}
+
+@media(prefers-reduced-motion: reduce) {
+  .starfield--far, .starfield--mid, .starfield--near, .star {
+    animation: none !important;
+  }
+}
+</style>
+
+<script type="module" is:inline>
+(function() {
+  const container = document.querySelector("[data-shooting-stars]");
+  if (!container || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const GLYPHS = ["──────✦", "─────·", "──────⋆", "·─────✦", "─────˚"];
+
+  function spawnShootingStar() {
+    const star = document.createElement("span");
+    star.className = "shooting-star";
+    star.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    // Set spawn coordinates on the right half/top quadrant
+    const startX = w * (0.55 + Math.random() * 0.4);
+    const startY = h * (Math.random() * 0.55);
+
+    // Calculate delta displacements (moving leftwards and downwards)
+    const dx = -(w * (0.5 + Math.random() * 0.3));
+    const dy = h * (0.3 + Math.random() * 0.35);
+    const duration = 1.2 + Math.random() * 0.8;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    star.style.left = `${startX}px`;
+    star.style.top = `${startY}px`;
+    star.style.setProperty("--shoot-dx", `${dx}px`);
+    star.style.setProperty("--shoot-dy", `${dy}px`);
+    star.style.setProperty("--shoot-duration", `${duration}s`);
+    star.style.setProperty("--shoot-angle", `${angle}deg`);
+
+    container.appendChild(star);
+    
+    // Remove element once the CSS keyframe concludes
+    setTimeout(() => {
+      star.remove();
+    }, duration * 1000 + 200);
+  }
+
+  function loop() {
+    if (container.childElementCount === 0) {
+      spawnShootingStar();
+    }
+    const delay = 4000 + Math.random() * 3000;
+    setTimeout(loop, delay);
+  }
+
+  // Initial trigger delay
+  setTimeout(spawnShootingStar, 800);
+  setTimeout(loop, 3500);
+})();
+</script>

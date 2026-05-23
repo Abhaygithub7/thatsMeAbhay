@@ -1,0 +1,1268 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Sidebar from '../components/Sidebar.astro';
+import CustomCursor from '../components/CustomCursor.astro';
+import SparkBurst from '../components/SparkBurst.astro';
+import SitePet from '../components/SitePet.astro';
+import '../styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="View cards left by visitors who stopped by Abhay's World.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap">
+  <title>Visitor Gallery — Abhay's World</title>
+  
+  <script is:inline define:vars={{
+    firebaseConfig: {
+      apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
+      authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.PUBLIC_FIREBASE_APP_ID
+    }
+  }}>
+    if (firebaseConfig.apiKey) {
+      window.firebaseConfig = firebaseConfig;
+    }
+  </script>
+  <script src="/js/db.js" is:inline></script>
+  <ClientRouter />
+  
+  <style>
+    /* Mini Card layout grids in the gallery */
+    .mini-card-wrap {
+      container-type: inline-size;
+      width: 100%;
+      aspect-ratio: 388 / 252;
+      overflow: hidden;
+      overflow: clip;
+      overflow-clip-margin: 18px;
+      transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+      content-visibility: auto;
+      contain-intrinsic-size: auto 252px;
+      perspective: 800px;
+    }
+    .mini-card-wrap:hover, .mini-card-wrap[data-tilting] {
+      content-visibility: visible;
+      overflow: visible;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    .mini-card-wrap[data-tilting] {
+      transition: none;
+    }
+    .mini-card-wrap .mini-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 388px;
+      height: 252px;
+      transform-origin: top left;
+      transform: scale(var(--mini-card-scale, tan(atan2(100cqi, 388px)))) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+      transition: box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1), transform 0.1s ease-out;
+    }
+    .mini-card-wrap:hover .mini-card {
+      box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.35), 0 8px 18px -6px rgba(0, 0, 0, 0.22);
+    }
+    .mini-gloss {
+      background: radial-gradient(180px 180px at var(--gloss-x, 50%) var(--gloss-y, 50%), rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .mini-card-wrap:hover .mini-gloss {
+      opacity: 1;
+      mix-blend-mode: soft-light;
+    }
+    
+    .mini-card[data-color=indigo],
+    .library-card[data-color=indigo],
+    [data-modal-card][data-color=indigo] {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      --tint: var(--color-pink-2);
+      --card-border: rgba(167, 139, 250, 0.5);
+    }
+    .mini-card[data-color=teal],
+    .library-card[data-color=teal],
+    [data-modal-card][data-color=teal] {
+      background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
+      --tint: var(--color-teal-3);
+      --card-border: rgba(45, 212, 191, 0.5);
+    }
+    .mini-card[data-color=green],
+    .library-card[data-color=green],
+    [data-modal-card][data-color=green] {
+      background: linear-gradient(135deg, #15803d 0%, #4d7c0f 100%);
+      --tint: var(--color-green-2);
+      --card-border: rgba(134, 239, 172, 0.5);
+    }
+    .mini-card[data-color=orange],
+    .library-card[data-color=orange],
+    [data-modal-card][data-color=orange] {
+      background: linear-gradient(135deg, #c2410c 0%, #b45309 100%);
+      --tint: var(--color-orange-2);
+      --card-border: rgba(253, 186, 116, 0.5);
+    }
+
+    /* Show only the ASCII art that matches the data-color */
+    .mini-card pre {
+      display: none;
+    }
+    .mini-card[data-color=indigo] pre[data-for=indigo] { display: block; }
+    .mini-card[data-color=teal] pre[data-for=teal] { display: block; }
+    .mini-card[data-color=green] pre[data-for=green] { display: block; }
+    .mini-card[data-color=orange] pre[data-for=orange] { display: block; }
+
+    /* Details Stats Panel Accordion heights */
+    .stats-body-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    details[open] .stats-body-wrap {
+      grid-template-rows: 1fr;
+    }
+    .stats-body {
+      overflow: hidden;
+      min-height: 0;
+    }
+    .stats-toggle__chevron {
+      transition: transform 0.3s var(--ease-out-soft);
+    }
+    details[open] .stats-toggle__chevron {
+      transform: rotate(180deg);
+    }
+    details[data-collapsing] .stats-toggle__chevron {
+      transform: rotate(0deg);
+    }
+
+    /* Color picker filters stats styling */
+    .stats-color-row {
+      padding: 6px 8px;
+      margin: -2px -8px;
+      transition: opacity 0.22s var(--ease-out-soft), background 0.22s var(--ease-out-soft);
+    }
+    .stats-color-row:hover .stats-color-bar {
+      opacity: 1 !important;
+    }
+    .stats-color-row:hover .stats-color-pct {
+      color: var(--color-ink);
+    }
+    [data-stats-color-rows]:has(.stats-color-row:hover) .stats-color-row:not(:hover) {
+      opacity: 0.5;
+    }
+    [data-stats-color-rows]:has(.stats-color-row[data-active]) .stats-color-row:not([data-active]) {
+      opacity: 0.5;
+    }
+    .stats-color-row[data-active] {
+      opacity: 1 !important;
+      background: rgba(195, 186, 156, 0.2);
+    }
+    .stats-color-row[data-active] .stats-color-bar {
+      opacity: 1 !important;
+    }
+    .stats-color-row[data-active] .stats-color-pct {
+      color: var(--color-ink);
+    }
+
+    /* Grid Filter Hide styling */
+    [data-gallery-grid] [data-mini-card-wrap] {
+      transition: opacity 0.28s var(--ease-out-soft), transform 0.28s var(--ease-out-soft);
+    }
+    [data-gallery-grid] [data-mini-card-wrap][data-filter-hide] {
+      display: none;
+    }
+
+    .gallery-shuffle[data-spinning] svg {
+      animation: gallery-shuffle-spin .6s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes gallery-shuffle-spin {
+      0% { transform: rotate(0); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Full Detail Modal Popup */
+    .gallery-detail {
+      background-color: rgba(234, 230, 219, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: opacity 0.35s var(--ease-out-soft);
+    }
+    .gallery-detail[data-open] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mini-card-wrap, .mini-card, .stats-body-wrap, .gallery-shuffle[data-spinning] svg {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-bg)] text-[var(--color-ink)] font-body selection:bg-[var(--color-bg-neutral)]">
+  <div class="flex flex-col lg:flex-row items-stretch min-h-screen">
+    
+    <!-- Sidebar navigation -->
+    <Sidebar activeSection="gallery" />
+
+    <!-- Main Workspace Area -->
+    <main class="flex flex-col gap-6 sm:gap-8 p-6 md:p-12 flex-1 min-w-0">
+      
+      <!-- Gallery Header -->
+      <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+        <div class="flex items-end gap-3 sm:gap-4 flex-wrap">
+          <h1 class="font-display font-light text-[28px] sm:text-[32px] md:text-[36px] leading-none text-[var(--color-ink)]">
+            Visitor Gallery
+          </h1>
+          <p data-gallery-subtitle class="font-mono text-sm sm:text-base uppercase text-[var(--color-ink-dim)] mb-1">
+            Loading guests...
+          </p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" data-shuffle class="gallery-shuffle bg-[var(--color-bg-neutral)] rounded-[4px] px-2.5 py-1 flex items-center gap-2 font-mono text-sm uppercase text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors cursor-pointer select-none">
+            Shuffle
+            <svg class="transition-transform duration-200" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 3h5v5"></path>
+              <path d="M4 20L21 3"></path>
+              <path d="M21 16v5h-5"></path>
+              <path d="M15 15l6 6"></path>
+              <path d="M4 4l5 5"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Stats Accordion Details Panel -->
+      <details data-stats-panel class="stats-panel mt-2 w-full">
+        <summary class="stats-toggle bg-[var(--color-bg-neutral)] rounded-[8px] px-3 py-2 flex items-center justify-between gap-2 font-mono text-xs uppercase text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+          <span class="flex items-center gap-2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-60"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            Stats for Nerds
+          </span>
+          <svg class="stats-toggle__chevron transition-transform duration-200" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6"></path>
+          </svg>
+        </summary>
+        <div class="stats-body-wrap">
+          <div class="stats-body rounded-[12px] border border-[var(--color-bg-neutral-2)] bg-[var(--color-bg-neutral)]/40 mt-4 p-4 sm:p-6 flex flex-col gap-6">
+
+            <!-- KPI metrics row -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" data-stats-kpi-grid>
+              <!-- Filled dynamically by JS -->
+            </div>
+
+            <!-- Dynamic Line Graph of Signups over Time -->
+            <div data-stats-timeline></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- Color Picks Bar chart -->
+              <div>
+                <h3 class="font-mono text-xs uppercase text-[var(--color-ink-dim)] mb-3 tracking-wide">Card Color Picks</h3>
+                <div class="flex flex-col gap-2" data-stats-color-rows>
+                  <!-- Generated dynamically by JS -->
+                </div>
+                <button type="button" data-stats-filter-reset class="font-mono text-[11px] uppercase text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] transition-all mt-3 cursor-pointer items-center gap-1.5 ml-[76px]" style="display: none">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block align-middle mr-1">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                  </svg>
+                  Show all
+                </button>
+              </div>
+              
+              <!-- Favorite Hats picks -->
+              <div class="stats-card rounded-[8px] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3">
+                <p class="font-mono text-xs uppercase text-[var(--color-ink-dim)] mb-2">Favorite Hat</p>
+                <div class="flex gap-4 flex-wrap" data-stats-hats>
+                  <!-- Hat list details populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- Signature guestbook link button -->
+      <a href="/onboarding?from=gallery" data-gallery-signin-btn class="flex items-center justify-center gap-2 rounded-[12px] bg-[var(--color-ink)] px-4 py-3.5 font-mono text-sm uppercase text-[var(--color-bg)] hover:bg-[var(--color-ink-dim)] transition-colors select-none">
+        Sign the guestbook
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14"></path>
+          <path d="M5 12h14"></path>
+        </svg>
+      </a>
+
+      <!-- Grid displaying visitor cards (Max 15 displayed) -->
+      <div data-gallery-grid class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-y-8 gap-x-6 mt-4 select-none">
+        <!-- Javascript renders cards directly into this container -->
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Fullscreen card details modal overlay -->
+  <div data-detail-modal class="gallery-detail fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+    <div class="absolute inset-0 z-0 cursor-pointer bg-[var(--color-bg)]/80 backdrop-blur-md" data-close-backdrop></div>
+    
+    <div class="relative z-10 w-[388px] max-w-full aspect-[388/252] rounded-[24px] shadow-2xl transition-transform duration-300 scale-95 flex flex-col p-7 text-white font-mono uppercase border border-black/10 select-none overflow-hidden" data-modal-card>
+      <div class="flex justify-between items-center z-10">
+        <h3 class="font-display font-light text-[24px] leading-none normal-case">Developer Card</h3>
+        <button type="button" data-close-modal class="text-2xl leading-none font-mono text-white/80 hover:text-white cursor-pointer select-none">×</button>
+      </div>
+      
+      <dl class="mt-6 flex flex-col gap-2 relative z-10">
+        <div class="flex flex-col">
+          <dt class="text-[11px] opacity-70" data-modal-tint>Visitor Name</dt>
+          <dd class="text-[17px] mt-1" data-modal-name>Name</dd>
+        </div>
+        <div class="flex flex-col mt-2">
+          <dt class="text-[11px] opacity-70" data-modal-tint>Issued on</dt>
+          <dd class="text-[17px] mt-1" data-modal-date>Date</dd>
+        </div>
+      </dl>
+
+      <div class="mt-auto flex items-end justify-between relative z-10">
+        <p class="text-[12px] opacity-70" data-modal-number>No. 0000</p>
+        <div class="flex items-end gap-2 grow ml-8">
+          <span class="text-[18px] leading-none">x</span>
+          <span class="block flex-1 border-b border-white/50 mb-1"></span>
+        </div>
+      </div>
+      
+      <!-- Canvas image signatures -->
+      <img src="" alt="" class="absolute inset-0 size-full pointer-events-none z-10 select-none" data-modal-signature>
+      
+      <!-- ASCII graphic art template -->
+      <pre data-modal-ascii class="absolute pointer-events-none whitespace-pre select-none font-mono text-[14px] leading-[1.08] right-[-24px] bottom-[-14px] opacity-50 z-0"></pre>
+    </div>
+  </div>
+
+  <!-- Custom Cursor, Sparks & Site Pet widgets -->
+  <CustomCursor />
+  <SparkBurst />
+  <SitePet />
+
+  <script type="module" is:inline>
+    (function() {
+      // HTML entity escaping to prevent XSS from user-supplied data
+      function esc(str) {
+        const el = document.createElement("span");
+        el.textContent = String(str);
+        return el.innerHTML;
+      }
+
+      const grid = document.querySelector("[data-gallery-grid]");
+      const modal = document.querySelector("[data-detail-modal]");
+      const closeBtn = document.querySelector("[data-close-modal]");
+      const backdrop = document.querySelector("[data-close-backdrop]");
+      const modalCard = document.querySelector("[data-modal-card]");
+      const shuffleBtn = document.querySelector("[data-shuffle]");
+
+      const ASCII_PRESETS = {
+        indigo: `⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢔⣶⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠗⡿⣾⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡼⠓⡞⢩⣯⡀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠰⡹⠁⢰⠃⣩⣿⡇⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣿⠿⣉⣩⠛⠲⢶⡠⢄⠐⣣⠃⣰⠗⠋⢀⣯⠁⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣯⣠⠬⠦⢤⣀⠈⠓⢽⣾⢔⣡⡴⠞⠻⠙⢳⡄`,
+        teal: `⠀⠀⠀⢸⣦⡀⠀⠀⠀⠀⢀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⣏⠻⣶⣤⡶⢾⡿⠁⠀⢠⣄⡀⢀⣴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⣀⣼⠷⠀⠀⠁⢀⣿⠃⠀⠀⢀⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠴⣾⣯⣅⣀⠀⠀⠀⠈⢻⣦⡀⠒⠻⠿⣿⡿⠿⠓⠂⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀`,
+        green: `⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⠴⢤⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢾⣛⡆⠈⡏⠰⠶⠃⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢦⣿⣄⣉⣁⣤⠽⣦⣤⡶⠶⣤⣄⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠚⠹⡉⢃⣴⠟⠉⠀⠀⠀⠀⠉⠻`,
+        orange: `⠀⠀⠀⣀⣤⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⣰⣿⣿⠿⢿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠
+⣰⣿⣿⡟⠀⠀⠈⠙⠛⠿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿
+⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⠿⢿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠁`
+      };
+
+      let activeFilterColor = null;
+      let allCardsData = [];
+      let isFiltering = false;
+
+      // Relative time calculator helper
+      function getRelativeTime(timestamp) {
+        if (!timestamp) return "--";
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMin = Math.round(diffMs / 60000);
+        const diffHr = Math.round(diffMs / 3600000);
+        const diffDay = Math.round(diffMs / 86400000);
+
+        if (diffMin < 1) return "Just now";
+        if (diffMin < 60) return `${diffMin}min ago`;
+        if (diffHr < 24) return `${diffHr}h ago`;
+        return `${diffDay}d ago`;
+      }
+
+      // Compute rich KPI stats from full cards dataset
+      function computeStats(cards) {
+        const now = new Date();
+
+        // Total count
+        const total = cards.length;
+
+        // New this week (last 7 days)
+        const weekAgo = new Date(now - 7 * 86400000);
+        const newThisWeek = cards.filter(c => new Date(c.timestamp || c.date) >= weekAgo).length;
+
+        // New this month (last 30 days)
+        const monthAgo = new Date(now - 30 * 86400000);
+        const newThisMonth = cards.filter(c => new Date(c.timestamp || c.date) >= monthAgo).length;
+
+        // Build per-day counts map (YYYY-MM-DD)
+        const dayCounts = new Map();
+        cards.forEach(c => {
+          const d = new Date(c.timestamp || c.date);
+          if (isNaN(d)) return;
+          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          dayCounts.set(key, (dayCounts.get(key) || 0) + 1);
+        });
+
+        // Peak day (most signups)
+        let peakDay = null, peakCount = 0;
+        dayCounts.forEach((count, day) => {
+          if (count > peakCount) { peakCount = count; peakDay = day; }
+        });
+        const peakLabel = peakDay
+          ? new Date(peakDay + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : '--';
+
+        // Busiest day of week
+        const dowCounts = [0,0,0,0,0,0,0];
+        cards.forEach(c => {
+          const d = new Date(c.timestamp || c.date);
+          if (!isNaN(d)) dowCounts[d.getDay()]++;
+        });
+        const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const busiestDow = DOW_NAMES[dowCounts.indexOf(Math.max(...dowCounts))];
+
+        // All-time streak (consecutive days with ≥1 visitor)
+        const sortedDays = Array.from(dayCounts.keys()).sort();
+        let streak = 0, maxStreak = 0, prevDay = null;
+        sortedDays.forEach(dayStr => {
+          const d = new Date(dayStr + 'T12:00:00Z');
+          if (prevDay) {
+            const diff = Math.round((d - prevDay) / 86400000);
+            if (diff === 1) { streak++; } else { streak = 1; }
+          } else { streak = 1; }
+          maxStreak = Math.max(maxStreak, streak);
+          prevDay = d;
+        });
+
+        // Average visitors per active day
+        const activeDays = dayCounts.size;
+        const avgPerDay = activeDays > 0 ? (total / activeDays).toFixed(1) : '0';
+
+        // Latest guest name + time
+        const latestCard = cards[0];
+        const latestTime = latestCard ? getRelativeTime(latestCard.timestamp || latestCard.date) : '--';
+        const latestName = latestCard ? latestCard.name : '--';
+
+        return { total, newThisWeek, newThisMonth, peakLabel, peakCount, busiestDow, maxStreak, avgPerDay, latestTime, latestName, activeDays };
+      }
+
+      // Render the KPI stat cards grid
+      function drawKpiGrid(cards) {
+        const grid = document.querySelector('[data-stats-kpi-grid]');
+        if (!grid) return;
+
+        const s = computeStats(cards);
+
+        const kpis = [
+          {
+            label: 'Total Guests',
+            value: s.total.toLocaleString(),
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+            accent: 'var(--color-teal)'
+          },
+          {
+            label: 'This Week',
+            value: `+${s.newThisWeek}`,
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>`,
+            accent: 'var(--color-green)'
+          },
+          {
+            label: 'This Month',
+            value: `+${s.newThisMonth}`,
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 12-4-4-6 6-4-4-4 4"/></svg>`,
+            accent: 'var(--color-pink)'
+          },
+          {
+            label: 'Peak Day',
+            value: s.peakLabel,
+            sub: `${s.peakCount} guests`,
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m8 10 4-8 4 8"/></svg>`,
+            accent: 'var(--color-orange)'
+          },
+          {
+            label: 'Busiest Day',
+            value: s.busiestDow,
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+            accent: 'var(--color-teal)'
+          },
+          {
+            label: 'Avg / Day',
+            value: s.avgPerDay,
+            sub: `over ${s.activeDays} active days`,
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>`,
+            accent: 'var(--color-green)'
+          },
+        ];
+
+        grid.innerHTML = kpis.map(k => `
+          <div class="stats-kpi-card rounded-[10px] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3 flex flex-col gap-1.5">
+            <div class="flex items-center gap-1.5" style="color: ${k.accent}">
+              ${k.icon}
+              <span class="font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-dim)]">${k.label}</span>
+            </div>
+            <p class="font-display text-2xl font-light text-[var(--color-ink)] leading-none mt-0.5">${k.value}</p>
+            ${k.sub ? `<p class="font-mono text-[10px] text-[var(--color-ink-mute)]">${k.sub}</p>` : ''}
+          </div>
+        `).join('');
+      }
+
+      // Initialize accordion collapse/expand transition cleanly
+      function initStatsPanelAccordion() {
+        const panel = document.querySelector("[data-stats-panel]");
+        const summary = panel?.querySelector("summary");
+        const wrap = panel?.querySelector(".stats-body-wrap");
+        if (!panel || !summary || !wrap || panel.dataset.statsWired) return;
+
+        panel.dataset.statsWired = "1";
+        const animDuration = 420;
+        let isTransitioning = false;
+
+        summary.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (isTransitioning) return;
+
+          if (panel.open) {
+            isTransitioning = true;
+            panel.setAttribute("data-collapsing", "");
+            wrap.addEventListener("transitionend", function handler(event) {
+              if (event.target === wrap) {
+                wrap.removeEventListener("transitionend", handler);
+                panel.removeAttribute("data-collapsing");
+                panel.open = false;
+                isTransitioning = false;
+              }
+            });
+            setTimeout(() => {
+              if (isTransitioning) {
+                panel.removeAttribute("data-collapsing");
+                panel.open = false;
+                isTransitioning = false;
+              }
+            }, animDuration + 30);
+          } else {
+            isTransitioning = true;
+            panel.setAttribute("data-expanding", "");
+            panel.open = true;
+            wrap.offsetHeight; // force reflow
+            panel.removeAttribute("data-expanding");
+            wrap.addEventListener("transitionend", function handler(event) {
+              if (event.target === wrap) {
+                wrap.removeEventListener("transitionend", handler);
+                isTransitioning = false;
+              }
+            });
+            setTimeout(() => {
+              isTransitioning = false;
+            }, animDuration + 30);
+          }
+        });
+      }
+
+      // Draw SVG line timeline graph of signups
+      function drawTimelineGraph(cards) {
+        const timelineWrap = document.querySelector("[data-stats-timeline]");
+        if (!timelineWrap) return;
+
+        // Group cards counts by day (YYYY-MM-DD)
+        const dateCounts = new Map();
+        cards.forEach(c => {
+          const t = c.timestamp || c.date;
+          const d = new Date(t);
+          if (isNaN(d)) return;
+          const YYYYMMDD = [
+            d.getFullYear(),
+            String(d.getMonth() + 1).padStart(2, "0"),
+            String(d.getDate()).padStart(2, "0")
+          ].join("-");
+          dateCounts.set(YYYYMMDD, (dateCounts.get(YYYYMMDD) || 0) + 1);
+        });
+
+        const sortedDays = Array.from(dateCounts.keys()).sort();
+        if (sortedDays.length === 0) return;
+
+        const parseDayStr = (str) => {
+          const [y, m, d] = str.split("-").map(Number);
+          return new Date(y, m - 1, d);
+        };
+        const formatDayStr = (d) => {
+          return [
+            d.getFullYear(),
+            String(d.getMonth() + 1).padStart(2, "0"),
+            String(d.getDate()).padStart(2, "0")
+          ].join("-");
+        };
+        const getLabel = (str) => {
+          return parseDayStr(str).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        };
+
+        // Populate days gaps between earliest and latest signup date (plus 3 padding days at start)
+        const timelineDays = [];
+        const current = parseDayStr(sortedDays[0]);
+        current.setDate(current.getDate() - 3);
+        const end = parseDayStr(sortedDays[sortedDays.length - 1]);
+
+        while (current <= end) {
+          const str = formatDayStr(current);
+          timelineDays.push({
+            day: str,
+            count: dateCounts.get(str) || 0
+          });
+          current.setDate(current.getDate() + 1);
+        }
+
+        if (timelineDays.length < 2) return;
+
+        // Draw graph SVG dimensions
+        const width = 600;
+        const height = 80;
+        const padding = 4;
+        const plotHeight = height - padding * 2;
+        const peakVal = Math.max(...timelineDays.map(d => d.count), 1);
+
+        const points = timelineDays.map((d, index) => ({
+          x: (index / (timelineDays.length - 1)) * width,
+          y: padding + plotHeight - (d.count / peakVal) * plotHeight,
+          ...d
+        }));
+
+        const linePath = points.map((p, index) => `${index === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+        const fillPath = `${linePath} L${points[points.length - 1].x.toFixed(1)},${height} L${points[0].x.toFixed(1)},${height} Z`;
+
+        const invisibleDots = points.map(p => `
+          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--color-teal)" opacity="0" class="stats-line__dot" data-tip-day="${p.day}" data-tip-count="${p.count}" />
+        `).join("");
+
+        timelineWrap.innerHTML = `
+          <h3 class="font-mono text-xs uppercase text-[var(--color-ink-dim)] mb-3 tracking-wide">Visitors Over Time</h3>
+          <div class="flex flex-col gap-1">
+            <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="w-full h-20 overflow-visible" data-stats-line role="img" aria-label="Visitor signups chart over ${timelineDays.length} days, peak ${peakVal} per day">
+              <!-- Fill area -->
+              <path d="${fillPath}" fill="var(--color-teal)" opacity="0.08" />
+              <!-- Stroke line -->
+              <path d="${linePath}" fill="none" stroke="var(--color-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" />
+              <!-- Hover elements -->
+              <line data-stats-crosshair x1="0" y1="0" x2="0" y2="${height}" stroke="var(--color-ink-mute)" stroke-width="1" stroke-dasharray="3 3" opacity="0" />
+              <circle data-stats-active-dot cx="0" cy="0" r="4.5" fill="var(--color-teal)" stroke="var(--color-bg)" stroke-width="2" opacity="0" />
+              <!-- Invisible dots for raycasting coordinates -->
+              ${invisibleDots}
+            </svg>
+            <div class="flex justify-between font-mono text-[9px] text-[var(--color-ink-mute)] uppercase tracking-wider mt-1">
+              <span>${getLabel(timelineDays[0].day)}</span>
+              <span>${getLabel(timelineDays[timelineDays.length - 1].day)}</span>
+            </div>
+          </div>
+          <div data-stats-tooltip class="fixed px-2 py-1 rounded-[6px] bg-[var(--color-ink)] text-white font-mono text-[10px] whitespace-nowrap pointer-events-none opacity-0 transition-opacity z-50 shadow-md"></div>
+        `;
+
+        // Wire up timeline crosshair hover indicators
+        const svg = timelineWrap.querySelector("[data-stats-line]");
+        const tooltip = timelineWrap.querySelector("[data-stats-tooltip]");
+        const crosshair = timelineWrap.querySelector("[data-stats-crosshair]");
+        const activeDot = timelineWrap.querySelector("[data-stats-active-dot]");
+
+        if (svg && tooltip && crosshair && activeDot) {
+          const formatTooltipDate = (str) => {
+            const [y, m, d] = str.split("-").map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          };
+
+          svg.addEventListener("mousemove", (e) => {
+            const rect = svg.getBoundingClientRect();
+            const percentX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const dots = svg.querySelectorAll(".stats-line__dot");
+            if (dots.length === 0) return;
+
+            const index = Math.round(percentX * (dots.length - 1));
+            const dot = dots[Math.max(0, Math.min(index, dots.length - 1))];
+            const cx = dot.cx.baseVal.value;
+            const cy = dot.cy.baseVal.value;
+
+            crosshair.setAttribute("x1", String(cx));
+            crosshair.setAttribute("x2", String(cx));
+            crosshair.style.opacity = "0.3";
+
+            activeDot.setAttribute("cx", String(cx));
+            activeDot.setAttribute("cy", String(cy));
+            activeDot.style.opacity = "1";
+
+            const countVal = dot.dataset.tipCount;
+            const labelStr = countVal === "1" ? "visitor" : "visitors";
+            tooltip.textContent = `${formatTooltipDate(dot.dataset.tipDay)} · ${countVal} ${labelStr}`;
+            tooltip.style.opacity = "1";
+            tooltip.style.left = `${e.clientX}px`;
+            tooltip.style.top = `${rect.top - 32}px`;
+            tooltip.style.transform = "translateX(-50%)";
+          });
+
+          svg.addEventListener("mouseleave", () => {
+            tooltip.style.opacity = "0";
+            crosshair.style.opacity = "0";
+            activeDot.style.opacity = "0";
+          });
+        }
+      }
+
+      // Populate color distributions stats picks rows
+      function drawColorStats(cards) {
+        const rowsContainer = document.querySelector("[data-stats-color-rows]");
+        if (!rowsContainer) return;
+
+        // Mapped color label configurations
+        const colorMeta = {
+          indigo: { label: "Pink", color: "var(--color-pink)" }, // pink maps to indigo
+          orange: { label: "Orange", color: "var(--color-orange)" },
+          teal: { label: "Teal", color: "var(--color-teal)" },
+          green: { label: "Green", color: "var(--color-green)" }
+        };
+
+        // Reset counters
+        const counts = { indigo: 0, orange: 0, teal: 0, green: 0 };
+        let total = 0;
+        cards.forEach(c => {
+          if (counts[c.color] !== undefined) {
+            counts[c.color]++;
+            total++;
+          }
+        });
+
+        rowsContainer.innerHTML = "";
+
+        Object.keys(colorMeta).forEach(colorKey => {
+          const meta = colorMeta[colorKey];
+          const count = counts[colorKey];
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "stats-color-row flex items-center gap-2 rounded-[6px] px-2 py-1.5 transition-colors w-full cursor-pointer";
+          btn.setAttribute("data-cursor-bg", colorKey);
+          btn.setAttribute("data-stats-color-filter", colorKey);
+          
+          if (activeFilterColor === colorKey) {
+            btn.setAttribute("data-active", "");
+          }
+
+          btn.innerHTML = `
+            <span class="font-mono text-xs uppercase w-16 text-right transition-colors" style="color: ${meta.color}">
+              ${meta.label}
+            </span>
+            <div class="flex-1 h-5 rounded-[6px] bg-[var(--color-bg-neutral-2)]/30 overflow-hidden relative">
+              <div class="stats-color-bar h-full rounded-[6px] transition-all duration-700 ease-out" style="width: ${pct}%; background: ${meta.color}; opacity: 0.85;"></div>
+            </div>
+            <span class="stats-color-pct font-mono text-xs text-[var(--color-ink-dim)] w-12 text-left tabular-nums transition-colors">
+              ${pct}%
+            </span>
+          `;
+
+          // Handle color filter toggles
+          btn.addEventListener("click", () => {
+            if (activeFilterColor === colorKey) {
+              resetFilter();
+            } else {
+              applyFilter(colorKey);
+            }
+          });
+
+          rowsContainer.appendChild(btn);
+        });
+      }
+
+      // Populate Site Pet hats statistics
+      async function drawHatStats() {
+        const container = document.querySelector("[data-stats-hats]");
+        if (!container) return;
+
+        const stats = await window.visitorDb.loadHatStats();
+        
+        const hatSVGs = {
+          sprout: `<svg width="20" height="15" viewBox="8 -14 26 20" class="inline-block align-middle"><rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50"/><ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)"/><ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)"/></svg>`,
+          party: `<svg width="18" height="13" viewBox="10 -14 26 16" class="inline-block align-middle"><polygon points="22.5,-12 14,0 31,0" fill="#bf5a7a"/><rect x="14" y="0" width="17" height="2" rx="1" fill="#bf5a7a"/><circle cx="22.5" cy="-12" r="2" fill="#168b9d"/></svg>`,
+          cap: `<svg width="20" height="11" viewBox="0 -6 44 15" class="inline-block align-middle"><rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d"/><rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d"/></svg>`,
+          bucket: `<svg width="20" height="11" viewBox="-4 -9 48 17" class="inline-block align-middle"><rect x="10" y="-5" width="24" height="10" rx="3" fill="#e8c84a"/><rect x="-1" y="2" width="46" height="6" rx="3" fill="#e8c84a"/></svg>`,
+          top: `<svg width="18" height="13" viewBox="0 -14 44 19" class="inline-block align-middle"><rect x="13" y="-12" width="18" height="14" rx="2.5" fill="#1a1a1a"/><rect x="4" y="0" width="36" height="5" rx="2.5" fill="#1a1a1a"/></svg>`
+        };
+
+        const hatNames = {
+          sprout: "Sprout",
+          party: "Party",
+          cap: "Cap",
+          bucket: "Bucket",
+          top: "Top Hat"
+        };
+
+        container.innerHTML = "";
+
+        // Sort hats descending by count
+        const sortedHats = Object.keys(stats).sort((a, b) => stats[b] - stats[a]);
+
+        sortedHats.forEach(hatKey => {
+          const div = document.createElement("div");
+          div.className = "flex items-center gap-1.5";
+          div.innerHTML = `
+            ${hatSVGs[hatKey] || ""}
+            <span class="font-mono text-xs text-[var(--color-ink-dim)]">${hatNames[hatKey]}</span>
+            <span class="font-mono text-[11px] text-[var(--color-ink-mute)] tabular-nums">(${stats[hatKey]})</span>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      // Filter transitions with Web Animations API (FLIP transitions)
+      function executeGridFilter(color) {
+        if (isFiltering) return;
+        isFiltering = true;
+
+        const resetBtn = document.querySelector("[data-stats-filter-reset]");
+        const wraps = Array.from(grid.querySelectorAll("[data-mini-card-wrap]"));
+        
+        if (resetBtn) {
+          resetBtn.style.display = color ? "inline-flex" : "none";
+        }
+
+        const isReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        const fadeOutDuration = isReducedMotion ? 0 : 180;
+        const flipDuration = isReducedMotion ? 0 : 380;
+
+        const isCardMatches = (cardWrap) => !color || cardWrap.dataset.color === color;
+        const previouslyVisible = wraps.filter(w => !w.hasAttribute("data-filter-hide"));
+        const cardsToHide = previouslyVisible.filter(w => !isCardMatches(w));
+        const cardsToShow = wraps.filter(w => w.hasAttribute("data-filter-hide") && isCardMatches(w));
+        const cardsToKeep = previouslyVisible.filter(w => isCardMatches(w));
+
+        // Record initial positions for visible remaining cards
+        const initialRects = new Map();
+        cardsToKeep.forEach(w => {
+          initialRects.set(w, w.getBoundingClientRect());
+        });
+
+        function applyDOMFilters() {
+          wraps.forEach(w => {
+            if (isCardMatches(w)) {
+              w.removeAttribute("data-filter-hide");
+            } else {
+              w.setAttribute("data-filter-hide", "");
+            }
+          });
+
+          // Play FLIP and fade in transitions
+          let pendingAnimations = 0;
+          const checkDone = () => {
+            pendingAnimations--;
+            if (pendingAnimations <= 0) {
+              isFiltering = false;
+            }
+          };
+
+          // FLIP remaining cards
+          cardsToKeep.forEach(w => {
+            const start = initialRects.get(w);
+            const end = w.getBoundingClientRect();
+            if (start) {
+              const dx = start.left - end.left;
+              const dy = start.top - end.top;
+              if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                pendingAnimations++;
+                const anim = w.animate([
+                  { transform: `translate3d(${dx}px, ${dy}px, 0)` },
+                  { transform: "translate3d(0, 0, 0)" }
+                ], {
+                  duration: flipDuration,
+                  easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+                });
+                anim.onfinish = checkDone;
+              }
+            }
+          });
+
+          // Fade/Scale in newly shown cards
+          cardsToShow.forEach(w => {
+            pendingAnimations++;
+            const anim = w.animate([
+              { opacity: 0, transform: "scale3d(0.92, 0.92, 1)" },
+              { opacity: 1, transform: "scale3d(1, 1, 1)" }
+            ], {
+              duration: flipDuration,
+              easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+            });
+            anim.onfinish = checkDone;
+          });
+
+          if (pendingAnimations === 0) {
+            isFiltering = false;
+          }
+        }
+
+        // Fade/Scale out hidden cards first
+        if (cardsToHide.length === 0) {
+          applyDOMFilters();
+        } else {
+          let hidesRemaining = cardsToHide.length;
+          cardsToHide.forEach(w => {
+            const anim = w.animate([
+              { opacity: 1, transform: "scale3d(1, 1, 1)" },
+              { opacity: 0, transform: "scale3d(0.92, 0.92, 1)" }
+            ], {
+              duration: fadeOutDuration,
+              easing: "ease-out"
+            });
+            anim.onfinish = () => {
+              hidesRemaining--;
+              if (hidesRemaining === 0) {
+                applyDOMFilters();
+              }
+            };
+          });
+        }
+      }
+
+      function applyFilter(color) {
+        activeFilterColor = color;
+        // Highlight active filter row
+        const rows = document.querySelectorAll("[data-stats-color-filter]");
+        rows.forEach(r => {
+          r.toggleAttribute("data-active", r.dataset.statsColorFilter === color);
+        });
+        executeGridFilter(color);
+      }
+
+      function resetFilter() {
+        activeFilterColor = null;
+        const rows = document.querySelectorAll("[data-stats-color-filter]");
+        rows.forEach(r => r.removeAttribute("data-active"));
+        executeGridFilter(null);
+      }
+
+      // 3D Tilt and radial gloss calculation handler
+      function handleCardPointerMove(e, wrap) {
+        const card = wrap.querySelector(".mini-card");
+        if (!card) return;
+
+        const rect = wrap.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+        const mouseX = e.clientX - (rect.left + width / 2);
+        const mouseY = e.clientY - (rect.top + height / 2);
+
+        // Rotation angles limits (e.g. 9 degrees max)
+        const maxTilt = 9;
+        const tiltX = (mouseY / (height / 2)) * maxTilt;
+        const tiltY = -(mouseX / (width / 2)) * maxTilt;
+
+        // Gloss percentage coordinates
+        const glossX = ((e.clientX - rect.left) / width) * 100;
+        const glossY = ((e.clientY - rect.top) / height) * 100;
+
+        wrap.setAttribute("data-tilting", "");
+        card.style.setProperty("--tilt-x", `${tiltX}deg`);
+        card.style.setProperty("--tilt-y", `${tiltY}deg`);
+        card.style.setProperty("--gloss-x", `${glossX}%`);
+        card.style.setProperty("--gloss-y", `${glossY}%`);
+      }
+
+      function handleCardPointerLeave(wrap) {
+        const card = wrap.querySelector(".mini-card");
+        wrap.removeAttribute("data-tilting");
+        if (card) {
+          card.style.setProperty("--tilt-x", "0deg");
+          card.style.setProperty("--tilt-y", "0deg");
+          card.style.setProperty("--gloss-x", "50%");
+          card.style.setProperty("--gloss-y", "50%");
+        }
+      }
+
+      // Details full-card modal open
+      function openModal(cardData) {
+        if (!modal || !modalCard) return;
+
+        // Style base modal background colors matching card
+        modalCard.setAttribute("data-color", cardData.color);
+        modalCard.className = `relative z-10 w-[388px] max-w-full aspect-[388/252] rounded-[24px] shadow-2xl transition-transform duration-300 scale-100 flex flex-col p-7 text-white font-mono uppercase border border-black/10 select-none overflow-hidden`;
+
+        modal.querySelector("[data-modal-name]").textContent = cardData.name;
+        modal.querySelector("[data-modal-date]").textContent = cardData.date;
+        modal.querySelector("[data-modal-number]").textContent = `No. ${cardData.number}`;
+
+        const img = modal.querySelector("[data-modal-signature]");
+        if (img) img.src = cardData.signature;
+
+        const ascii = modal.querySelector("[data-modal-ascii]");
+        if (ascii) {
+          ascii.textContent = ASCII_PRESETS[cardData.color] || "";
+        }
+
+        modal.setAttribute("data-open", "");
+        modal.classList.remove("pointer-events-none");
+        modal.style.opacity = "1";
+      }
+
+      function closeModal() {
+        if (!modal) return;
+        modal.removeAttribute("data-open");
+        modal.classList.add("pointer-events-none");
+        modal.style.opacity = "0";
+      }
+
+      // Render visitor cards into grid (limiting to last 15 visually)
+      async function renderGallery() {
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        // Reset filter states
+        activeFilterColor = null;
+
+        // Fetch cards from window.visitorDb database service
+        const cards = await window.visitorDb.loadCards();
+        allCardsData = cards;
+
+        // Compile and draw stats panel accordion data
+        const subtitle = document.querySelector("[data-gallery-subtitle]");
+        if (subtitle) {
+          subtitle.textContent = `${cards.length} guests have signed in.`;
+        }
+
+        // Percentage signed cards calculation
+        const defaultSigs = cards.filter(c => c.id.startsWith("seed_")).length;
+        const totalUserSigs = cards.length - defaultSigs;
+        const pctSigned = cards.length > 0 ? Math.round((totalUserSigs / cards.length) * 100) : 0;
+        const signedPctEl = document.querySelector("[data-stats-signed-percentage]");
+        if (signedPctEl) {
+          signedPctEl.textContent = `${pctSigned}%`;
+        }
+
+        // Relative time of latest guest
+        const latestTimeEl = document.querySelector("[data-stats-latest-time]");
+        if (latestTimeEl && cards.length > 0) {
+          latestTimeEl.textContent = getRelativeTime(cards[0].timestamp || cards[0].date);
+        }
+
+        // Highlight current user's card in subtitle
+        const currentUserCardId = sessionStorage.getItem("gallery:current_user_card_id");
+        if (currentUserCardId) {
+          const userIdx = cards.findIndex(c => c.id === currentUserCardId);
+          if (userIdx !== -1 && subtitle) {
+            const getRankSuffix = (rank) => {
+              const o = ["th", "st", "nd", "rd"];
+              const c = rank % 100;
+              return rank + (o[(c - 20) % 10] || o[c] || o[0]);
+            };
+            subtitle.textContent = `You're our ${getRankSuffix(cards.length - userIdx)} guest!`;
+          }
+        }
+
+        // Draw KPI metric cards (total, this week, peak day, etc.)
+        drawKpiGrid(cards);
+
+        // Draw graph SVG timeline
+        drawTimelineGraph(cards);
+
+        // Draw color pick percentage bar rows
+        drawColorStats(cards);
+
+        // Draw pet hats aggregates
+        await drawHatStats();
+
+        // SLICE visitor cards array: Display ONLY the last 15 records in the visual grid
+        const visualCards = cards.slice(0, 15);
+
+        visualCards.forEach(cardData => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "mini-card-wrap relative rounded-[24px] p-0.5 overflow-hidden cursor-none select-none";
+          wrapper.style.boxShadow = "0 4px 24px -4px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.10)";
+          wrapper.setAttribute("data-color", cardData.color);
+          wrapper.setAttribute("data-cursor-bg", cardData.color);
+          wrapper.setAttribute("data-mini-card-wrap", "");
+          wrapper.setAttribute("data-id", cardData.id);
+
+          // Add current user pill badge
+          if (currentUserCardId === cardData.id) {
+            const youPill = document.createElement("span");
+            youPill.className = "mini-card-pill absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 font-mono font-bold text-[10px] uppercase px-2 py-0.5 rounded-[4px] tracking-wider shadow-sm select-none pointer-events-none";
+            youPill.style.backgroundColor = "var(--color-pink-2)";
+            youPill.style.color = "#4f46e5"; // Indigo matching custom pill
+            youPill.textContent = "That’s you!";
+            wrapper.appendChild(youPill);
+          }
+
+          wrapper.innerHTML += `
+            <div data-color="${cardData.color}" data-mini-card class="mini-card relative size-full rounded-[24px] cursor-pointer overflow-hidden shadow-md">
+              <article data-color="${cardData.color}" class="library-card relative w-[388px] h-[252px] rounded-[24px] overflow-hidden p-7 flex flex-col text-white font-mono uppercase select-none">
+                <!-- Braille illustrations -->
+                <pre aria-hidden="true" data-for="indigo" class="library-card__flower absolute pointer-events-none whitespace-pre opacity-65 font-mono text-[14px] leading-[1.08] right-[-24px] bottom-[-14px]">${ASCII_PRESETS.indigo}</pre>
+                <pre aria-hidden="true" data-for="teal" class="library-card__flower absolute pointer-events-none whitespace-pre opacity-65 font-mono text-[14px] leading-[1.08] right-[-24px] bottom-[-14px]">${ASCII_PRESETS.teal}</pre>
+                <pre aria-hidden="true" data-for="green" class="library-card__flower absolute pointer-events-none whitespace-pre opacity-65 font-mono text-[12px] leading-[1.1] right-[-10px] bottom-[-10px]">${ASCII_PRESETS.green}</pre>
+                <pre aria-hidden="true" data-for="orange" class="library-card__flower absolute pointer-events-none whitespace-pre opacity-65 font-mono text-[14px] leading-[1.08] right-[-24px] bottom-[-14px]">${ASCII_PRESETS.orange}</pre>
+
+                <h2 class="font-display font-light text-[24px] leading-none normal-case relative tracking-wide">Developer Card</h2>
+                
+                <dl class="mt-6 flex flex-col gap-2 relative z-10">
+                  <div class="flex flex-col">
+                    <dt class="text-[11px] leading-none tracking-wider opacity-70">Visitor Name</dt>
+                    <dd class="text-[17px] leading-none mt-1.5 font-bold truncate">${esc(cardData.name)}</dd>
+                  </div>
+                  <div class="flex flex-col mt-2">
+                    <dt class="text-[11px] leading-none tracking-wider opacity-70">Issued on</dt>
+                    <dd class="text-[17px] leading-none mt-1.5">${esc(cardData.date)}</dd>
+                  </div>
+                </dl>
+
+                <div class="mt-auto flex items-end justify-between relative z-10">
+                  <p class="text-[12px] leading-none opacity-70">No. ${esc(cardData.number)}</p>
+                  <div class="flex items-end gap-2 grow ml-8">
+                    <span class="text-[18px] leading-none font-bold">x</span>
+                    <span class="block flex-1 border-b border-white/50 mb-1"></span>
+                  </div>
+                </div>
+
+                <!-- SVG canvas signature drawing -->
+                <img src="${cardData.signature}" class="absolute inset-0 size-full pointer-events-none z-10 select-none opacity-90" />
+                
+                <!-- Gloss effect layer overlay -->
+                <div class="mini-gloss"></div>
+              </article>
+            </div>
+          `;
+
+          // Hover events for 3D tilt + gloss reflection
+          wrapper.addEventListener("pointermove", (e) => handleCardPointerMove(e, wrapper));
+          wrapper.addEventListener("pointerleave", () => handleCardPointerLeave(wrapper));
+
+          // Open detailed modal on click
+          wrapper.addEventListener("click", () => {
+            openModal(cardData);
+          });
+
+          grid.appendChild(wrapper);
+        });
+
+        // Fire custom event to notify SitePet of card grid updates
+        window.dispatchEvent(new CustomEvent("gallery:cards-added"));
+      }
+
+      // Fisher-Yates shuffle with native Web Animations API transition
+      function shuffleGalleryGrid() {
+        if (!grid || isFiltering) return;
+        isFiltering = true;
+
+        const wraps = Array.from(grid.querySelectorAll("[data-mini-card-wrap]"));
+        if (wraps.length === 0) {
+          isFiltering = false;
+          return;
+        }
+
+        const isReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        const duration = isReducedMotion ? 0 : 380;
+
+        // Record old bounding boxes
+        const oldRects = new Map();
+        wraps.forEach(w => {
+          oldRects.set(w, w.getBoundingClientRect());
+        });
+
+        // Perform Fisher-Yates shuffle in DOM structure
+        for (let i = wraps.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          grid.appendChild(wraps[j]); // appendChild moves node to end
+        }
+
+        // Translate nodes from old locations to new sorted locations
+        let pending = 0;
+        wraps.forEach(w => {
+          const start = oldRects.get(w);
+          const end = w.getBoundingClientRect();
+          if (start) {
+            const dx = start.left - end.left;
+            const dy = start.top - end.top;
+            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+              pending++;
+              const anim = w.animate([
+                { transform: `translate3d(${dx}px, ${dy}px, 0)` },
+                { transform: "translate3d(0, 0, 0)" }
+              ], {
+                duration: duration,
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+              });
+              anim.onfinish = () => {
+                pending--;
+                if (pending <= 0) {
+                  isFiltering = false;
+                }
+              };
+            }
+          }
+        });
+
+        if (pending === 0) {
+          isFiltering = false;
+        }
+      }
+
+      // Bind modal triggers
+      if (closeBtn) closeBtn.addEventListener("click", closeModal);
+      if (backdrop) backdrop.addEventListener("click", closeModal);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      // Bind reset color filter button
+      const resetBtn = document.querySelector("[data-stats-filter-reset]");
+      if (resetBtn) resetBtn.addEventListener("click", resetFilter);
+
+      // Bind Shuffle triggers
+      if (shuffleBtn) {
+        shuffleBtn.addEventListener("click", () => {
+          if (isFiltering) return;
+          shuffleBtn.setAttribute("data-spinning", "");
+          window.dispatchEvent(new CustomEvent("gallery:shuffle"));
+          shuffleGalleryGrid();
+          setTimeout(() => {
+            shuffleBtn.removeAttribute("data-spinning");
+          }, 600);
+        });
+      }
+
+      // Trigger accordion wiring
+      initStatsPanelAccordion();
+
+      // Render cards grid
+      renderGallery();
+
+      // Setup Astro View Transitions re-renders
+      document.addEventListener("astro:page-load", () => {
+        initStatsPanelAccordion();
+        renderGallery();
+      });
+    })();
+  </script>
+</body>
+</html>

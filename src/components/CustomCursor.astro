@@ -1,0 +1,347 @@
+---
+---
+<div data-custom-cursor-page aria-hidden="true" style="display:none"></div>
+
+<div data-custom-cursor data-color="green" data-mode="dot" data-astro-transition-persist="custom-cursor" class="custom-cursor pointer-events-none fixed top-0 left-0 z-[100] hidden">
+  <div data-cursor-shape class="custom-cursor__shape">
+    <!-- Icon: Case Study (Eye) -->
+    <svg data-cursor-icon="eye" class="cursor-icon cursor-icon--eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+    <!-- Icon: External Link (Arrow) -->
+    <svg data-cursor-icon="arrow" class="cursor-icon cursor-icon--arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 7h10v10"></path>
+      <path d="M7 17 17 7"></path>
+    </svg>
+    <!-- Icon: Pen -->
+    <svg data-cursor-icon="pen" class="cursor-icon cursor-icon--pen" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z" fill="var(--cursor-color, var(--color-pink))"></path>
+      <path d="M22 6.5l3.5 3.5"></path>
+      <path d="M19 9.5l3.5 3.5"></path>
+    </svg>
+    <!-- Icon: Eraser -->
+    <svg data-cursor-icon="eraser" class="cursor-icon cursor-icon--eraser" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 20H7l-4-4 12-12 8 8-8 8"></path>
+      <path d="M14 4l8 8"></path>
+    </svg>
+    <span data-cursor-label class="cursor-label text-[10px] tracking-wider uppercase font-mono pl-1"></span>
+  </div>
+</div>
+
+<style>
+.custom-cursor[data-color=pink]{--cursor-color: var(--color-pink)}
+.custom-cursor[data-color=teal]{--cursor-color: var(--color-teal)}
+.custom-cursor[data-color=green]{--cursor-color: var(--color-green)}
+.custom-cursor[data-color=orange]{--cursor-color: var(--color-orange)}
+.custom-cursor[data-color=neutral]{--cursor-color: var(--color-bg-neutral-2)}
+.custom-cursor[data-color=neutral] .custom-cursor__shape{color:var(--color-ink)}
+.custom-cursor{will-change:transform}
+.custom-cursor__shape{
+  position:absolute;
+  top:0;
+  left:0;
+  width:16px;
+  height:16px;
+  margin-left:-8px;
+  margin-top:-8px;
+  background:var(--cursor-color, var(--color-pink));
+  border-radius:9999px;
+  color:var(--color-ink-inverted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  overflow:hidden;
+  transition:width .22s var(--ease-out-soft),height .22s var(--ease-out-soft),margin .22s var(--ease-out-soft),border .22s var(--ease-out-soft),border-radius .22s var(--ease-out-soft),padding .22s var(--ease-out-soft),background-color .18s ease-out;
+  will-change:width,height,margin
+}
+.custom-cursor[data-mode=dot] .custom-cursor__shape{transition-duration:.14s}
+.cursor-icon{opacity:0;flex-shrink:0;transition:opacity .18s ease-out;display:none}
+.cursor-label{opacity:0;white-space:nowrap;transition:opacity .18s ease-out}
+.custom-cursor[data-mode=link] .custom-cursor__shape{
+  width:28px;
+  height:28px;
+  margin-left:-14px;
+  margin-top:-14px;
+  box-shadow:0 0 0 3px color-mix(in oklab,var(--cursor-color, var(--color-pink)) 25%,transparent)
+}
+.custom-cursor[data-mode=case-study] .custom-cursor__shape{
+  width:172px;
+  height:36px;
+  margin-left:-86px;
+  margin-top:-18px;
+  border-radius:18px;
+  padding:0 16px
+}
+.custom-cursor[data-mode=case-study] .cursor-icon--eye{display:block;opacity:1;transition:opacity .18s .08s ease-out}
+.custom-cursor[data-mode=case-study] .cursor-label{opacity:1;transition:opacity .18s .08s ease-out}
+.custom-cursor[data-mode=external] .custom-cursor__shape{
+  width:140px;
+  height:36px;
+  margin-left:-70px;
+  margin-top:-18px;
+  border-radius:18px;
+  padding:0 16px
+}
+.custom-cursor[data-mode=external] .cursor-icon--arrow{display:block;opacity:1;transition:opacity .18s .08s ease-out}
+.custom-cursor[data-mode=external] .cursor-label{opacity:1;transition:opacity .18s .08s ease-out}
+.custom-cursor[data-mode=photo] .custom-cursor__shape{
+  width:max-content;
+  min-width:72px;
+  height:24px;
+  padding:0 10px;
+  margin-left:0;
+  margin-top:-12px;
+  border-radius:12px;
+  background:#00000099;
+  color:#fff;
+  font-size:10px;
+  backdrop-filter:blur(4px);
+  transform:translate(-50%)
+}
+.custom-cursor[data-mode=photo] .cursor-icon{display:none}
+.custom-cursor[data-mode=photo] .cursor-label{opacity:1;transition:opacity .18s .08s ease-out}
+.custom-cursor[data-conflict][data-mode=photo] .custom-cursor__shape{background:#00000099;color:#fff}
+.custom-cursor[data-mode=pen] .custom-cursor__shape{
+  width:32px;
+  height:32px;
+  margin-left:-4px;
+  margin-top:-28px;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible
+}
+.custom-cursor[data-mode=pen] .cursor-icon--pen{display:block;opacity:1}
+.custom-cursor[data-mode=eraser] .custom-cursor__shape{
+  width:28px;
+  height:28px;
+  margin-left:-14px;
+  margin-top:-14px;
+  background:transparent;
+  border:2px solid #ffffff;
+  box-shadow:0 0 0 1px #00000040
+}
+.custom-cursor[data-conflict] .custom-cursor__shape{background:var(--color-ink-inverted);color:var(--color-ink)}
+.custom-cursor[data-conflict][data-color=neutral] .custom-cursor__shape{background:var(--color-ink);color:var(--color-ink-inverted)}
+.custom-cursor[data-pressed] .custom-cursor__shape{animation:cursor-press .22s var(--ease-out-soft)}
+
+@keyframes cursor-press{
+  0%{filter:brightness(1)}
+  35%{filter:brightness(1.5)}
+  100%{filter:brightness(1)}
+}
+</style>
+
+<script type="module" is:inline>
+(function(){
+  if(!window.matchMedia("(pointer: fine)").matches) return;
+  
+  const STYLE_ID = "cc-hide-cursor";
+  
+  function setNativeCursorHidden(hide) {
+    let styleEl = document.getElementById(STYLE_ID);
+    if (hide) {
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = STYLE_ID;
+        styleEl.textContent = "*, html { cursor: none !important; }";
+        document.head.appendChild(styleEl);
+      }
+    } else {
+      styleEl?.remove();
+    }
+  }
+
+  if (window.__customCursorInit) {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (el) el.classList.remove("hidden");
+    setNativeCursorHidden(true);
+    return;
+  }
+  window.__customCursorInit = true;
+
+  const DEFAULT_LABELS = {
+    "case-study": "View case study",
+    "external": "Try it out"
+  };
+
+  const cursorEl = document.querySelector("[data-custom-cursor]");
+  if (cursorEl) {
+    cursorEl.classList.remove("hidden");
+    cursorEl.style.opacity = "0";
+  }
+  setNativeCursorHidden(true);
+
+  let targetX = 0, targetY = 0;
+  let currentX = 0, currentY = 0;
+  let hasMoved = false;
+  let animationFrameId = null;
+  let hideTimeout = null;
+  const HIDE_DELAY = 500;
+  const MIN_DELTA = 0.5;
+
+  function updateLoop() {
+    currentX += (targetX - currentX) * 0.35;
+    currentY += (targetY - currentY) * 0.35;
+
+    const el = document.querySelector("[data-custom-cursor]");
+    if (el) {
+      el.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+    }
+
+    // Fire coordination event for elements that react to cursor coordinates
+    window.dispatchEvent(new CustomEvent("welcome:pointer", {
+      detail: { x: currentX, y: currentY }
+    }));
+
+    if (hideTimeout === null && Math.abs(targetX - currentX) < MIN_DELTA && Math.abs(targetY - currentY) < MIN_DELTA) {
+      currentX = targetX;
+      currentY = targetY;
+      if (el) el.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+      animationFrameId = null;
+      return;
+    }
+    animationFrameId = requestAnimationFrame(updateLoop);
+  }
+
+  function triggerUpdate() {
+    if (animationFrameId === null) {
+      animationFrameId = requestAnimationFrame(updateLoop);
+    }
+  }
+
+  function handlePointerMove(e) {
+    targetX = e.clientX;
+    targetY = e.clientY;
+
+    if (!hasMoved) {
+      currentX = targetX;
+      currentY = targetY;
+      const el = document.querySelector("[data-custom-cursor]");
+      if (el) el.style.opacity = "1";
+      hasMoved = true;
+    }
+    triggerUpdate();
+
+    if (hideTimeout !== null) clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      hideTimeout = null;
+    }, HIDE_DELAY);
+  }
+
+  window.addEventListener("pointermove", handlePointerMove);
+
+  document.addEventListener("mouseleave", () => {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (el) el.style.opacity = "0";
+  });
+
+  document.addEventListener("mouseenter", (e) => {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (el) el.style.opacity = hasMoved ? "1" : "0";
+    handlePointerMove(e);
+  });
+
+  function syncCursorPage() {
+    const hasCursorComponent = !!document.querySelector("[data-custom-cursor-page]");
+    const el = document.querySelector("[data-custom-cursor]");
+    if (hasCursorComponent) {
+      if (el) {
+        el.classList.remove("hidden");
+        if (hasMoved) el.style.opacity = "1";
+      }
+      setNativeCursorHidden(true);
+    } else {
+      if (el) {
+        el.style.opacity = "0";
+        el.classList.add("hidden");
+      }
+      setNativeCursorHidden(false);
+    }
+    triggerUpdate();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    } else {
+      syncCursorPage();
+    }
+  });
+
+  window.addEventListener("focus", syncCursorPage);
+
+  function getHoverState(target) {
+    if (!(target instanceof Element)) return { mode: "dot", label: null };
+    const cursorAttr = target.closest("[data-cursor]");
+    if (cursorAttr) {
+      return {
+        mode: cursorAttr.dataset.cursor || "dot",
+        label: cursorAttr.dataset.cursorLabel || null
+      };
+    }
+    const isInteractive = target.closest("a, button, [role='button'], label, input, textarea, select");
+    return { mode: isInteractive ? "link" : "dot", label: null };
+  }
+
+  function handleMouseOver(e) {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (!el) return;
+    const { mode, label } = getHoverState(e.target);
+    el.dataset.mode = mode;
+    const labelEl = el.querySelector("[data-cursor-label]");
+    if (labelEl) {
+      labelEl.textContent = label || DEFAULT_LABELS[mode] || "";
+    }
+  }
+
+  document.addEventListener("mouseover", handleMouseOver);
+  document.addEventListener("mouseout", (e) => handleMouseOver({ target: e.relatedTarget }));
+
+  // Color conflict detection
+  function handleColorConflict(e) {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (!el) return;
+    if (!(e.target instanceof Element)) {
+      el.removeAttribute("data-conflict");
+      return;
+    }
+    const bgContainer = e.target.closest("[data-cursor-bg]");
+    if (!bgContainer) {
+      el.removeAttribute("data-conflict");
+      return;
+    }
+    if (bgContainer.dataset.cursorBg !== "neutral") {
+      el.setAttribute("data-conflict", "");
+    } else {
+      el.removeAttribute("data-conflict");
+    }
+  }
+
+  document.addEventListener("mouseover", handleColorConflict);
+  document.addEventListener("mouseout", (e) => handleColorConflict({ target: e.relatedTarget }));
+
+  // Mouse pressing states
+  document.addEventListener("pointerdown", () => {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (el) el.setAttribute("data-pressed", "");
+  });
+
+  const clearPressed = () => {
+    const el = document.querySelector("[data-custom-cursor]");
+    if (el) el.removeAttribute("data-pressed");
+  };
+  document.addEventListener("pointerup", clearPressed);
+  document.addEventListener("pointercancel", clearPressed);
+
+  // Astro page swap hooks for view transitions compatibility
+  document.addEventListener("astro:page-load", syncCursorPage);
+  document.addEventListener("astro:before-swap", () => {
+    document.documentElement.removeAttribute("data-welcome-cursor-active");
+  });
+})();
+</script>

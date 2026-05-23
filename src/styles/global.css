@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@theme {
+  /* Site Theme Color Palette (Megan's tactile design) */
+  --color-ink: #2e2d27;
+  --color-ink-dim: #6e6b5e;
+  --color-ink-mute: #aba695;
+  --color-ink-inverted: #f3f1eb;
+  
+  --color-bg: #eae6db;
+  --color-bg-light: #f3f1eb;
+  --color-bg-white: #ffffff;
+  --color-bg-neutral: #ded9c8;
+  --color-bg-neutral-2: #c3ba9c;
+  
+  /* Swapped Accent Colors (Warm & Developer Friendly) */
+  --color-pink: #6366f1; /* Pink mapped to Indigo for custom cursor and templates */
+  --color-pink-2: #e0e7ff;
+  --color-teal: #4f8a88;
+  --color-teal-3: #ccfbf1;
+  --color-green: #6c9977;
+  --color-green-1: #6ea880;
+  --color-green-2: #dcfce7;
+  --color-orange: #ce805a;
+  --color-orange-2: #ffedd5;
+  
+  /* Font Family Overrides */
+  --font-mono: 'Source Code Pro', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Animation Easing and Durations */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-base: 0.28s;
+  --duration-fast: 0.18s;
+  --duration-slow: 0.42s;
+}
+
+/* Custom Base / Utility Styles */
+@layer base {
+  html, body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-light);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-bg-neutral-2);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-mute);
+  }
+}
+
+/* Custom UI Components and Micro-animations */
+@layer utilities {
+  .btn-springy {
+    transition: transform var(--duration-fast) var(--ease-out-soft), box-shadow var(--duration-fast) var(--ease-out-soft);
+    box-shadow: 0 4px 0 var(--color-bg-neutral-2);
+  }
+  .btn-springy:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--color-bg-neutral-2);
+  }
+  .btn-springy:active {
+    transform: translateY(2px);
+    box-shadow: 0 0px 0 var(--color-bg-neutral-2);
+  }
+
+  /* 3D card flips */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}

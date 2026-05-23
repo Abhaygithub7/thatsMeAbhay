@@ -1,0 +1,368 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Sidebar from '../components/Sidebar.astro';
+import CustomCursor from '../components/CustomCursor.astro';
+import SparkBurst from '../components/SparkBurst.astro';
+import SitePet from '../components/SitePet.astro';
+import '../styles/global.css';
+
+// Favorite datasets structured by category for the 3D flip card carousel
+const FAVORITES = {
+  interests: [
+    { title: "Artillery", sub: "Military Tech & History", color: "indigo", blurb: "Fascinated by mechanical ballistics, historical trajectory calculations, and military hardware design." },
+    { title: "Tech", sub: "Software & AI Models", color: "teal", blurb: "Deep dive into model architectures, rapid prototyping pipelines, and automating complex tasks with agents." },
+    { title: "Tennis", sub: "Active Sports", color: "green", blurb: "Love hitting the courts, perfecting baseline rallies, and following grand slam matches." },
+    { title: "Cristiano Ronaldo (SIUUUU)", sub: "Football Icon", color: "orange", blurb: "The ultimate athlete. Unrivaled work ethic, dedication, clutch champion mentality, and that iconic SIUUUU!" }
+  ],
+  games: [
+    { title: "Clash Royale", sub: "Supercell", color: "teal", blurb: "Fast-paced real-time card strategy. Managing elixir trade-offs and climbing ladder rankings." },
+    { title: "Age of Empires", sub: "Xbox Game Studios", color: "indigo", blurb: "Classic real-time strategy. Managing complex economic micro and building medieval empires." },
+    { title: "Trackmania", sub: "Ubisoft Nadeo", color: "orange", blurb: "Precision time-trial racing. Perfecting speed drifts and shaving fractions of a second off custom tracks." },
+    { title: "Subnautica", sub: "Unknown Worlds", color: "green", blurb: "Breathtaking deep-sea survival. Building base grids and exploring terrifying bioluminescent alien depths." }
+  ],
+  music: [
+    { title: "One Direction", sub: "Pop / Boy Band", color: "indigo", blurb: "High-energy classic pop hits. Perfect nostalgic tracks that always boost the room's mood." },
+    { title: "INJI", sub: "Dance / Electronic", color: "orange", blurb: "Upbeat, sassy dance beats. Excellent focus booster while compiling modules and debugging logic." },
+    { title: "Sabrina Carpenter", sub: "Modern Pop", color: "teal", blurb: "Catchy choruses, witty songwriting, and bright pop melodies that keep code-building sessions lively." },
+    { title: "ROLE MODEL", sub: "Indie Pop", color: "green", blurb: "Relaxing, guitar-driven indie bedroom pop. Perfect background vibe for late-night coding." }
+  ]
+};
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Learn more about Abhay Singh Chauhan, his developer background, communities, and favorite things.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap">
+  <title>About Me — Abhay Singh Chauhan</title>
+  <ClientRouter />
+  
+  <style>
+    /* 3D Flip Card Styles */
+    .fave-card-container {
+      perspective: 1000px;
+    }
+    .fave-card {
+      position: relative;
+      width: 154px;
+      height: 220px;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: rotate(var(--card-rot, 0deg));
+    }
+    .fave-card[data-flipped="true"] {
+      transform: rotateY(180deg) scale(1.02);
+    }
+    .fave-card-front, .fave-card-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-col: justify;
+      border: 1px solid var(--color-bg-neutral);
+    }
+    .fave-card-front {
+      background-color: var(--color-bg-white);
+      z-index: 2;
+    }
+    .fave-card-back {
+      transform: rotateY(180deg);
+      background-color: var(--color-ink);
+      color: var(--color-ink-inverted);
+      border-color: var(--color-ink);
+      font-size: 11px;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    /* Shelf categorization colors */
+    .fave-card-front[data-color=indigo] { border-top: 4px solid var(--color-pink); }
+    .fave-card-front[data-color=teal] { border-top: 4px solid var(--color-teal); }
+    .fave-card-front[data-color=green] { border-top: 4px solid var(--color-green); }
+    .fave-card-front[data-color=orange] { border-top: 4px solid var(--color-orange); }
+
+    /* Portrait Image lift transitions */
+    .portrait-wrap {
+      transform: rotate(var(--base-rot, 0deg));
+      transition: transform var(--duration-base) var(--ease-out-soft), box-shadow var(--duration-base) var(--ease-out-soft);
+    }
+    .portrait-wrap:hover {
+      transform: scale(1.04) rotate(0deg);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-bg)] text-[var(--color-ink)] font-body selection:bg-[var(--color-bg-neutral)]">
+  <div class="flex flex-col lg:flex-row items-stretch min-h-screen">
+    
+    <!-- Sidebar navigation -->
+    <Sidebar activeSection="about" />
+
+    <!-- Main Workspace Area -->
+    <main class="flex flex-col gap-8 sm:gap-10 p-6 md:p-12 flex-1 min-w-0">
+      
+      <!-- Slogan Header -->
+      <section class="flex flex-col gap-4">
+        <h2 class="font-display font-light text-[32px] md:text-[38px] leading-tight text-[var(--color-ink)]">
+          Hi, I’m Abhay!
+        </h2>
+        <div class="font-body text-sm sm:text-base text-[var(--color-ink-dim)] leading-relaxed flex flex-col gap-4 max-w-[850px]">
+          <p>
+            {`Hi, I'm a Software Developer with inclination towards AI and ML models, I adapt to this constant chaos and use AI tools for rapid production level development. I spend my spare time modeling logical graphs, tuning parameter layers, and coding micro-frontends.`}
+          </p>
+          <p>When I'm not designing agent graphs or training models, you can find me:</p>
+          <ul class="list-none pl-0 flex flex-col gap-1.5 font-mono text-xs sm:text-sm uppercase tracking-wider text-[var(--color-ink-dim)]">
+            <li class="flex items-center gap-3">
+              <span class="text-[var(--color-pink)] font-bold">🌱</span>
+              <span>Building digital empires and colonizing grid board games</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="text-[var(--color-teal)] font-bold">⚔️</span>
+              <span>Evading underworld traps and battle chambers in rogue-likes</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="text-[var(--color-orange)] font-bold">📖</span>
+              <span>Reading epic sandstorm fantasy novels</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Portraits Gallery Strip -->
+        <div class="flex flex-wrap items-start justify-center md:justify-between gap-4 mt-6 relative select-none">
+          <!-- Left placeholder candid -->
+          <div class="portrait-wrap border border-black/5 rounded-[12px] p-2 bg-white shadow-sm overflow-hidden" style="--base-rot: -2.5deg;" data-cursor="photo" data-cursor-label="late night code & football match">
+            <img src="/images/about/workspace.jpg" alt="Abhay's workspace" class="rounded-[8px] object-cover w-[120px] h-[210px] sm:w-[150px] sm:h-[270px] lg:w-[180px] lg:h-[320px] pointer-events-none select-none">
+          </div>
+
+          <!-- Main Portrait displaying User Uploaded Photo -->
+          <div class="portrait-wrap border border-black/5 rounded-[12px] p-2 bg-white shadow-sm overflow-hidden" style="--base-rot: 1.5deg;" data-cursor="photo" data-cursor-label="abhay singh chauhan. developer profile photo">
+            <img src="/images/about/profile.jpg" alt="Abhay Singh Chauhan candid profile" class="rounded-[8px] object-cover w-[180px] h-[210px] sm:w-[220px] sm:h-[270px] lg:w-[260px] lg:h-[320px] pointer-events-none select-none">
+          </div>
+
+          <!-- Right placeholder candid -->
+          <div class="portrait-wrap border border-black/5 rounded-[12px] p-2 bg-white shadow-sm overflow-hidden" style="--base-rot: -1.75deg;" data-cursor="photo" data-cursor-label="optimus prime board game shelf mascot">
+            <img src="/images/about/boardgame.jpg" alt="Abhay's hobby shelf" class="rounded-[8px] object-cover w-[120px] h-[210px] sm:w-[150px] sm:h-[270px] lg:w-[180px] lg:h-[320px] pointer-events-none select-none">
+          </div>
+        </div>
+      </section>
+
+      <!-- Communities Logs -->
+      <section class="flex flex-col gap-4 mt-4 select-none">
+        <h2 class="font-mono text-xs uppercase tracking-widest text-[var(--color-ink-dim)]">
+          My Communities
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- DTI Card -->
+          <article class="bg-[var(--color-bg-light)] border border-black/5 rounded-[12px] p-4 flex flex-col gap-2 relative shadow-sm">
+            <header class="flex items-center gap-2">
+              <span class="size-4.5 rounded-[4px] bg-[var(--color-teal)] flex items-center justify-center font-mono text-[9px] font-bold text-white">&lt;</span>
+              <h3 class="font-display font-light text-base text-[var(--color-ink)] leading-tight">Digital Tech & Innovation</h3>
+            </header>
+            <p class="font-body text-xs text-[var(--color-ink-dim)] leading-relaxed mt-1">
+              Active as Mentor and Instructor at Cornell DTI, directing student-lead web platforms and consulting frontend architectures.
+            </p>
+          </article>
+
+          <!-- AI Research Card -->
+          <article class="bg-[var(--color-bg-light)] border border-black/5 rounded-[12px] p-4 flex flex-col gap-2 relative shadow-sm">
+            <header class="flex items-center gap-2">
+              <span class="size-4.5 rounded-[4px] bg-[var(--color-pink)] flex items-center justify-center font-mono text-[9px] font-bold text-white">AI</span>
+              <h3 class="font-display font-light text-base text-[var(--color-ink)] leading-tight">AI & Agentic Research</h3>
+            </header>
+            <p class="font-body text-xs text-[var(--color-ink-dim)] leading-relaxed mt-1">
+              Analyzing local fine-tuning architectures (QLoRA) and experimenting with multi-agent system delegation rules.
+            </p>
+          </article>
+
+          <!-- Armada Card -->
+          <article class="bg-[var(--color-bg-light)] border border-black/5 rounded-[12px] p-4 flex flex-col gap-2 relative shadow-sm">
+            <header class="flex items-center gap-2">
+              <span class="size-4.5 rounded-[4px] bg-[var(--color-orange)] flex items-center justify-center font-mono text-[9px] font-bold text-white">A</span>
+              <h3 class="font-display font-light text-base text-[var(--color-ink)] leading-tight">Armada Builders</h3>
+            </header>
+            <p class="font-body text-xs text-[var(--color-ink-dim)] leading-relaxed mt-1">
+              Engaging with builder networks sponsored by Jared Friedman (YC) and Anthropic to code rapid production products.
+            </p>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- Carousel 3D Flip Card Shelf -->
+      <section class="flex flex-col items-center gap-4 mt-6">
+        <h2 class="font-mono text-xs uppercase tracking-widest text-[var(--color-ink-dim)]">
+          A few of my favorite things
+        </h2>
+        
+        <!-- Category Toggle Nav -->
+        <div class="flex items-center justify-center gap-4 w-full mt-2 select-none z-10">
+          <button type="button" data-faves-prev class="px-2.5 py-1.5 rounded-[8px] bg-[var(--color-bg-neutral)] border border-black/5 font-mono text-xs uppercase hover:bg-[var(--color-bg-neutral-2)] active:scale-95 transition-all">← prev</button>
+          
+          <h3 data-faves-caption class="font-display font-light text-[20px] text-[var(--color-ink)] text-center min-w-[120px] leading-none uppercase tracking-wider">
+            Interests
+          </h3>
+          
+          <button type="button" data-faves-next class="px-2.5 py-1.5 rounded-[8px] bg-[var(--color-bg-neutral)] border border-black/5 font-mono text-xs uppercase hover:bg-[var(--color-bg-neutral-2)] active:scale-95 transition-all">next →</button>
+        </div>
+
+        <!-- Shelf Lane Track -->
+        <div class="favorites-shelf-frame mt-4 w-full overflow-hidden relative flex justify-center py-6 h-[260px]">
+          
+          <!-- Category: Interests -->
+          <div data-lane="interests" class="favorites-lane flex gap-4 transition-all duration-[var(--duration-base)] z-10">
+            {FAVORITES.interests.map((item, idx) => {
+              const rot = (idx % 2 === 0 ? -1 : 1.5) * (idx + 1);
+              return (
+                <div class="fave-card-container w-[154px] h-[220px]">
+                  <div class="fave-card cursor-pointer select-none" data-color={item.color} style={`--card-rot: ${rot}deg;`}>
+                    <div class="fave-card-front flex flex-col justify-between" data-color={item.color}>
+                      <span class="text-[9px] font-mono text-[var(--color-ink-dim)]">★ Category: Interests</span>
+                      <div class="flex flex-col gap-1.5 mt-auto">
+                        <span class="text-[13px] font-display font-light tracking-tight leading-snug text-[var(--color-ink)] truncate-2">{item.title}</span>
+                        <span class="text-[9px] font-mono text-[var(--color-ink-dim)] truncate">{item.sub}</span>
+                      </div>
+                    </div>
+                    <div class="fave-card-back">
+                      <p class="text-[10px] tracking-wide leading-relaxed font-body">{item.blurb}</p>
+                      <span class="text-[8px] font-mono tracking-widest text-[var(--color-ink-mute)] uppercase text-right w-full mt-auto block">tap to flip</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <!-- Category: Games -->
+          <div data-lane="games" class="favorites-lane flex gap-4 transition-all duration-[var(--duration-base)] absolute hidden">
+            {FAVORITES.games.map((item, idx) => {
+              const rot = (idx % 2 === 0 ? -1.5 : 1) * (idx + 1);
+              return (
+                <div class="fave-card-container w-[154px] h-[220px]">
+                  <div class="fave-card cursor-pointer select-none" data-color={item.color} style={`--card-rot: ${rot}deg;`}>
+                    <div class="fave-card-front flex flex-col justify-between" data-color={item.color}>
+                      <span class="text-[9px] font-mono text-[var(--color-ink-dim)]">★ Category: Games</span>
+                      <div class="flex flex-col gap-1.5 mt-auto">
+                        <span class="text-[13px] font-display font-light tracking-tight leading-snug text-[var(--color-ink)] truncate-2">{item.title}</span>
+                        <span class="text-[9px] font-mono text-[var(--color-ink-dim)] truncate">{item.sub}</span>
+                      </div>
+                    </div>
+                    <div class="fave-card-back">
+                      <p class="text-[10px] tracking-wide leading-relaxed font-body">{item.blurb}</p>
+                      <span class="text-[8px] font-mono tracking-widest text-[var(--color-ink-mute)] uppercase text-right w-full mt-auto block">tap to flip</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <!-- Category: Songs -->
+          <div data-lane="music" class="favorites-lane flex gap-4 transition-all duration-[var(--duration-base)] absolute hidden">
+            {FAVORITES.music.map((item, idx) => {
+              const rot = (idx % 2 === 0 ? -1 : 1.2) * (idx + 1);
+              return (
+                <div class="fave-card-container w-[154px] h-[220px]">
+                  <div class="fave-card cursor-pointer select-none" data-color={item.color} style={`--card-rot: ${rot}deg;`}>
+                    <div class="fave-card-front flex flex-col justify-between" data-color={item.color}>
+                      <span class="text-[9px] font-mono text-[var(--color-ink-dim)]">★ Category: Tracks</span>
+                      <div class="flex flex-col gap-1.5 mt-auto">
+                        <span class="text-[13px] font-display font-light tracking-tight leading-snug text-[var(--color-ink)] truncate-2">{item.title}</span>
+                        <span class="text-[9px] font-mono text-[var(--color-ink-dim)] truncate">{item.sub}</span>
+                      </div>
+                    </div>
+                    <div class="fave-card-back">
+                      <p class="text-[10px] tracking-wide leading-relaxed font-body">{item.blurb}</p>
+                      <span class="text-[8px] font-mono tracking-widest text-[var(--color-ink-mute)] uppercase text-right w-full mt-auto block">tap to flip</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Custom Cursor, Sparks & Site Pet widgets -->
+  <CustomCursor />
+  <SparkBurst />
+  <SitePet />
+
+  <script type="module" is:inline>
+    (function() {
+      // 3D Card flips
+      function init3DCardFlips() {
+        document.querySelectorAll(".fave-card").forEach(card => {
+          if (card.dataset.wired === "1") return;
+          card.dataset.wired = "1";
+          card.addEventListener("click", () => {
+            const flipped = card.getAttribute("data-flipped") === "true";
+            card.setAttribute("data-flipped", String(!flipped));
+          });
+        });
+      }
+
+      // Carousel Lane switcher
+      function initFavesCarousel() {
+        const caption = document.querySelector("[data-faves-caption]");
+        const prevBtn = document.querySelector("[data-faves-prev]");
+        const nextBtn = document.querySelector("[data-faves-next]");
+        const lanes = Array.from(document.querySelectorAll(".favorites-lane"));
+        if (lanes.length === 0) return;
+
+        const CATEGORIES = ["Interests", "Games", "Favorite Music"];
+        let currentIndex = 0;
+
+        function updateCarousel(targetIndex) {
+          // Reset flips of current lanes
+          document.querySelectorAll(".fave-card[data-flipped='true']").forEach(c => {
+            c.setAttribute("data-flipped", "false");
+          });
+
+          lanes[currentIndex].classList.add("hidden");
+          lanes[currentIndex].classList.add("absolute");
+          
+          currentIndex = (targetIndex + lanes.length) % lanes.length;
+          
+          lanes[currentIndex].classList.remove("hidden");
+          lanes[currentIndex].classList.remove("absolute");
+          
+          if (caption) {
+            caption.textContent = CATEGORIES[currentIndex];
+          }
+        }
+
+        if (prevBtn && prevBtn.dataset.wired !== "1") {
+          prevBtn.dataset.wired = "1";
+          prevBtn.addEventListener("click", () => updateCarousel(currentIndex - 1));
+        }
+
+        if (nextBtn && nextBtn.dataset.wired !== "1") {
+          nextBtn.dataset.wired = "1";
+          nextBtn.addEventListener("click", () => updateCarousel(currentIndex + 1));
+        }
+      }
+
+      function init() {
+        init3DCardFlips();
+        initFavesCarousel();
+      }
+
+      init();
+      document.addEventListener("astro:page-load", init);
+    })();
+  </script>
+</body>
+</html>

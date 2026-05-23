@@ -1,0 +1,305 @@
+---
+interface Props {
+  activeSection: 'work' | 'about' | 'gallery';
+}
+const { activeSection } = Astro.props;
+---
+<!-- Tab that sticks out on mobile when collapsed -->
+<button type="button" data-sidebar-toggle aria-label="Open sidebar" aria-controls="site-sidebar" aria-expanded="false" class="sidebar-tab fixed top-[21px] left-[21px] z-40 bg-[var(--color-bg-neutral)] border border-[var(--color-bg-neutral-2)] rounded-[8px] p-2 flex items-center justify-center lg:hidden">
+  <span class="sidebar-tab-dots flex gap-1 items-center" aria-hidden="true">
+    <span class="size-1.5 rounded-full bg-[var(--color-ink)]"></span>
+    <span class="size-1.5 rounded-full bg-[var(--color-ink)]"></span>
+    <span class="size-1.5 rounded-full bg-[var(--color-ink)]"></span>
+  </span>
+</button>
+
+<!-- Backdrop to close sidebar on mobile -->
+<div data-sidebar-backdrop class="sidebar-backdrop fixed inset-0 z-30 bg-black/35 opacity-0 pointer-events-none transition-opacity lg:hidden" aria-hidden="true"></div>
+
+<aside id="site-sidebar" data-sidebar class="site-sidebar fixed top-0 left-0 bottom-0 z-40 lg:sticky bg-[var(--color-bg-light)] flex flex-col gap-6 p-10 w-[303px] border-r border-[var(--color-bg-neutral)] shrink-0 transition-transform -translate-x-full lg:translate-x-0 overflow-y-auto lg:overflow-visible" data-astro-transition-persist="sidebar">
+  <div class="flex items-center justify-between lg:hidden">
+    <span class="font-mono text-xs uppercase tracking-wider text-[var(--color-ink-dim)]">Menu</span>
+    <button type="button" data-sidebar-close aria-label="Close sidebar" class="text-xl text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] font-mono">×</button>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <!-- Spinning and sparking logo -->
+    <a href="/home" aria-label="Home" data-logo-link class="sidebar-logo-link inline-block w-fit transition-transform hover:scale-[1.08] active:scale-[1.18] relative select-none">
+      <span data-logo-spin class="sidebar-logo-spin inline-block animate-spin-slow">
+        <!-- Developer Terminal Cursor Symbol as Logo -->
+        <div class="size-10 bg-[var(--color-ink)] rounded-[10px] flex items-center justify-center font-mono text-lg font-bold text-[var(--color-ink-inverted)] shadow-sm">
+          &gt;<span class="text-[var(--color-pink)] animate-pulse">_</span>
+        </div>
+      </span>
+      <span data-logo-sparks aria-hidden="true" class="sidebar-logo-sparks pointer-events-none absolute inset-0"></span>
+    </a>
+
+    <h1 class="font-display font-light text-[36px] leading-none text-[var(--color-ink)] tracking-tight">
+      Abhay Singh Chauhan
+    </h1>
+    <p class="font-mono text-base uppercase text-[var(--color-ink-dim)] leading-snug">
+      CS &amp; Engineer @ VIT
+    </p>
+    <p class="font-body text-base text-[var(--color-ink-dim)] leading-snug">
+      I am a tech lover and developer who trains smart agents and building competitive tools that solve real problems.
+    </p>
+    <p class="font-body text-base text-[var(--color-ink-dim)] leading-snug">
+      Adapting to constant chaos.
+    </p>
+  </div>
+
+  <!-- TOC menu with graphic previews -->
+  <nav data-toc data-active={activeSection} class="rounded-[12px] p-3 w-[223px] max-w-full relative" style="background-color: var(--color-bg-neutral);">
+    <p class="font-mono text-base uppercase text-[var(--color-ink)] mb-2">
+      Explore
+    </p>
+    <ul data-toc-list class="relative flex flex-col gap-1 z-10">
+      <!-- Animated sliding active background pill -->
+      <span data-toc-pill aria-hidden="true" class="absolute left-0 right-0 rounded-[8px] transition-[transform,height,opacity] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] pointer-events-none opacity-0 bg-[var(--color-bg-neutral-2)]" style="height: 24px; transform: translateY(0);"></span>
+
+      <!-- 01. Work -->
+      <li class="relative">
+        <a href="/home" data-toc-item data-key="work" class="group relative flex items-center justify-between px-1.5 py-1 rounded-[8px] text-base font-mono transition-[color,padding] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:pl-2.5 text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] data-[active]:text-[var(--color-ink)]" data-active={activeSection === 'work' ? '' : undefined}>
+          <span>01. My Work</span>
+          <span aria-hidden="true" class="transition-transform duration-[var(--duration-fast)] group-hover:translate-x-1">→</span>
+        </a>
+        <div class="toc-preview toc-preview--work pointer-events-none hidden absolute left-[240px] top-0 z-20 border border-[var(--color-bg-neutral-2)] bg-[var(--color-bg-light)] p-2 rounded-[8px] shadow-lg w-[140px] flex-col gap-1.5">
+          <span class="h-1 bg-[var(--color-ink-mute)] w-2/3 rounded-full opacity-60"></span>
+          <div class="grid grid-cols-2 gap-1.5 mt-1">
+            <span class="aspect-square bg-[var(--color-bg-neutral)] rounded-[4px]"></span>
+            <span class="aspect-square bg-[var(--color-bg-neutral)] rounded-[4px]"></span>
+            <span class="aspect-square bg-[var(--color-bg-neutral)] rounded-[4px]"></span>
+            <span class="aspect-square bg-[var(--color-bg-neutral)] rounded-[4px]"></span>
+          </div>
+        </div>
+      </li>
+
+      <!-- 02. About -->
+      <li class="relative">
+        <a href="/about" data-toc-item data-key="about" class="group relative flex items-center justify-between px-1.5 py-1 rounded-[8px] text-base font-mono transition-[color,padding] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:pl-2.5 text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] data-[active]:text-[var(--color-ink)]" data-active={activeSection === 'about' ? '' : undefined}>
+          <span>02. About Me</span>
+          <span aria-hidden="true" class="transition-transform duration-[var(--duration-fast)] group-hover:translate-x-1">→</span>
+        </a>
+        <div class="toc-preview toc-preview--about pointer-events-none hidden absolute left-[240px] top-0 z-20 border border-[var(--color-bg-neutral-2)] bg-[var(--color-bg-light)] p-2 rounded-[8px] shadow-lg w-[140px] flex-col gap-1.5">
+          <span class="text-[9px] font-display font-light leading-none">Hi, I'm Abhay!</span>
+          <span class="h-1 bg-[var(--color-ink-mute)] w-full rounded-full opacity-60"></span>
+          <div class="flex gap-1.5 mt-1">
+            <span class="size-4 rounded-full bg-[var(--color-pink)] shrink-0"></span>
+            <span class="size-4 rounded-full bg-[var(--color-teal)] shrink-0"></span>
+            <span class="size-4 rounded-full bg-[var(--color-green)] shrink-0"></span>
+          </div>
+        </div>
+      </li>
+
+      <!-- 03. Gallery -->
+      <li class="relative">
+        <a href="/visitor-gallery" data-toc-item data-key="gallery" class="group relative flex items-center justify-between px-1.5 py-1 rounded-[8px] text-base font-mono transition-[color,padding] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:pl-2.5 text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] data-[active]:text-[var(--color-ink)]" data-active={activeSection === 'gallery' ? '' : undefined}>
+          <span class="flex items-center gap-1.5">
+            03. Gallery
+            <span class="status-dot inline-block size-1.5 rounded-full bg-[var(--color-green-1)]" aria-hidden="true"></span>
+          </span>
+          <span aria-hidden="true" class="transition-transform duration-[var(--duration-fast)] group-hover:translate-x-1">→</span>
+        </a>
+        <div class="toc-preview toc-preview--gallery pointer-events-none hidden absolute left-[240px] top-0 z-20 border border-[var(--color-bg-neutral-2)] bg-[var(--color-bg-light)] p-2 rounded-[8px] shadow-lg w-[140px] flex-col gap-1.5">
+          <span class="text-[9px] font-mono text-[var(--color-ink-dim)] uppercase tracking-wider">Visitor Deck</span>
+          <div class="grid grid-cols-2 gap-1 mt-0.5">
+            <span class="h-4 bg-[var(--color-pink)] rounded-[3px]"></span>
+            <span class="h-4 bg-[var(--color-teal)] rounded-[3px]"></span>
+            <span class="h-4 bg-[var(--color-orange)] rounded-[3px]"></span>
+            <span class="h-4 bg-[var(--color-green)] rounded-[3px]"></span>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- External contacts -->
+  <div class="flex flex-col gap-0.5">
+    <p class="font-mono text-base uppercase text-[var(--color-ink)]">
+      Find me at
+    </p>
+    <p class="font-body text-base text-[var(--color-ink-dim)]">
+      <a href="mailto:abhaysinghchauhan2506@gmail.com" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">Email</a>,
+      <a href="https://github.com/Abhaygithub7" target="_blank" rel="noopener noreferrer" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">GitHub</a>,
+      <a href="https://www.linkedin.com/in/abhay-singh-8960052a3/" target="_blank" rel="noopener noreferrer" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">LinkedIn</a>
+    </p>
+  </div>
+
+  <!-- Operational status & Live Clock -->
+  <div class="sidebar-status mt-auto font-mono text-base uppercase text-[var(--color-ink-dim)] leading-snug select-none">
+    <p data-sidebar-clock class="mb-1 tabular-nums">--:--:-- --</p>
+    <p class="flex items-center tracking-wide">
+      <span class="inline-block size-1.5 rounded-full bg-[var(--color-green-1)] shadow-[0_0_0_0_rgba(110,168,128,0.55)] mr-2 align-middle animate-pulse"></span>
+      all systems operational
+    </p>
+  </div>
+</aside>
+
+<style>
+/* CSS logo sparks and menu animation logic */
+.sidebar-logo-sparks .spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: var(--spark-color);
+  pointer-events: none;
+  animation: logo-spark-explode 0.68s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes logo-spark-explode {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--spark-dx)), calc(-50% + var(--spark-dy))) scale(0); opacity: 0; }
+}
+
+.site-sidebar[data-open] {
+  transform: translateX(0);
+}
+.sidebar-backdrop[data-open] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Active TOC pill coloring by section */
+nav[data-active="work"] [data-toc-pill] {
+  background-color: var(--color-pink-2) !important;
+  border-left: 3px solid var(--color-pink) !important;
+}
+nav[data-active="about"] [data-toc-pill] {
+  background-color: var(--color-green-2) !important;
+  border-left: 3px solid var(--color-green) !important;
+}
+nav[data-active="gallery"] [data-toc-pill] {
+  background-color: var(--color-orange-2) !important;
+  border-left: 3px solid var(--color-orange) !important;
+}
+
+/* Hover preview displays on item hovering */
+li:hover .toc-preview {
+  display: flex;
+}
+</style>
+
+<script type="module" is:inline>
+(function() {
+  function initSidebar() {
+    const sidebar = document.querySelector("[data-sidebar]");
+    const toggle = document.querySelector("[data-sidebar-toggle]");
+    const backdrop = document.querySelector("[data-sidebar-backdrop]");
+    const close = document.querySelector("[data-sidebar-close]");
+
+    function openMenu() {
+      sidebar?.setAttribute("data-open", "");
+      backdrop?.setAttribute("data-open", "");
+      toggle?.setAttribute("aria-expanded", "true");
+    }
+
+    function closeMenu() {
+      sidebar?.removeAttribute("data-open");
+      backdrop?.removeAttribute("data-open");
+      toggle?.setAttribute("aria-expanded", "false");
+    }
+
+    if (toggle && toggle.dataset.wired !== "1") {
+      toggle.dataset.wired = "1";
+      toggle.addEventListener("click", openMenu);
+    }
+    if (close && close.dataset.wired !== "1") {
+      close.dataset.wired = "1";
+      close.addEventListener("click", closeMenu);
+    }
+    if (backdrop && backdrop.dataset.wired !== "1") {
+      backdrop.dataset.wired = "1";
+      backdrop.addEventListener("click", closeMenu);
+    }
+
+    // Active Indicator Pill math
+    const toc = document.querySelector("[data-toc]");
+    if (toc) {
+      const list = toc.querySelector("[data-toc-list]");
+      const pill = toc.querySelector("[data-toc-pill]");
+
+      function positionPill(targetItem) {
+        if (!targetItem || !pill || !list) return;
+        const targetRect = targetItem.getBoundingClientRect();
+        const listRect = list.getBoundingClientRect();
+        const topOffset = targetRect.top - listRect.top;
+        
+        pill.style.transform = `translateY(${topOffset}px)`;
+        pill.style.height = `${targetRect.height}px`;
+        pill.style.opacity = "1";
+      }
+
+      function getActiveItem() {
+        return list.querySelector(`[data-toc-item][data-key="${toc.dataset.active}"]`);
+      }
+
+      // Initial position for this page load
+      if (pill) pill.style.transition = "none";
+      requestAnimationFrame(() => {
+        positionPill(getActiveItem());
+        requestAnimationFrame(() => {
+          if (pill) pill.style.transition = "";
+        });
+      });
+
+      // Hover events wired up ONLY ONCE
+      if (toc.dataset.tocWired !== "1") {
+        toc.dataset.tocWired = "1";
+        list.querySelectorAll("[data-toc-item]").forEach(item => {
+          item.addEventListener("mouseenter", () => positionPill(item));
+        });
+        list.addEventListener("mouseleave", () => positionPill(getActiveItem()));
+        window.addEventListener("resize", () => positionPill(getActiveItem()));
+      }
+    }
+
+    // Click logo color explosion
+    const sparksColors = ["var(--color-pink)", "var(--color-teal)", "var(--color-orange)", "var(--color-green)"];
+    document.querySelectorAll("[data-logo-link]:not([data-wired])").forEach(logo => {
+      logo.dataset.wired = "1";
+      const sparkContainer = logo.querySelector("[data-logo-sparks]");
+      logo.addEventListener("click", (e) => {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (!sparkContainer) return;
+
+        const count = 10;
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+          const radius = 24 + Math.random() * 16;
+          const spark = document.createElement("span");
+          spark.className = "spark";
+          spark.style.setProperty("--spark-dx", `${Math.cos(angle) * radius}px`);
+          spark.style.setProperty("--spark-dy", `${Math.sin(angle) * radius}px`);
+          spark.style.setProperty("--spark-color", sparksColors[i % sparksColors.length]);
+          sparkContainer.appendChild(spark);
+
+          setTimeout(() => spark.remove(), 720);
+        }
+      });
+    });
+  }
+
+  // Running status clocks
+  if (!window.__sidebarClockWired) {
+    window.__sidebarClockWired = true;
+    function updateClocks() {
+      const clockEl = document.querySelector("[data-sidebar-clock]");
+      if (!clockEl) return;
+      const t = new Date();
+      const h = (t.getHours() + 11) % 12 + 1;
+      const m = String(t.getMinutes()).padStart(2, "0");
+      const s = String(t.getSeconds()).padStart(2, "0");
+      const meridiem = t.getHours() >= 12 ? "PM" : "AM";
+      clockEl.textContent = `${h}:${m}:${s} ${meridiem}`;
+    }
+    setInterval(updateClocks, 1000);
+    updateClocks();
+  }
+
+  initSidebar();
+  document.addEventListener("astro:page-load", initSidebar);
+})();
+</script>

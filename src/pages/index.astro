@@ -1,0 +1,210 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import CustomCursor from '../components/CustomCursor.astro';
+import SparkBurst from '../components/SparkBurst.astro';
+import Starfield from '../components/Starfield.astro';
+import '../styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Welcome to Abhay's World — software developer portfolio. Explores ML models, AI integrations, and dynamic interfaces.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Typography Pre-connections -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&family=Outfit:wght@200;300;400;500&family=Inter:wght@300;400;500&display=swap">
+  
+  <title>Welcome — Abhay's World</title>
+  <ClientRouter />
+  <style>
+    html {
+      background: var(--color-ink) !important;
+    }
+    #enter-cta {
+      transition: transform var(--duration-fast) var(--ease-out-soft), box-shadow var(--duration-fast) var(--ease-out-soft), border-color var(--duration-fast) var(--ease-out-soft), background-color var(--duration-fast) var(--ease-out-soft), color var(--duration-fast) var(--ease-out-soft);
+      box-shadow: 0 4px 0 var(--color-bg-neutral-2);
+    }
+    #enter-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(99, 102, 241, 0.35), 0 6px 0 var(--color-pink);
+      border-color: var(--color-pink);
+      background-color: var(--color-pink);
+      color: white;
+    }
+    #enter-cta:active {
+      transform: translateY(2px);
+      box-shadow: 0 0px 0 var(--color-pink);
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-ink)] text-[var(--color-ink-inverted)] font-body select-none">
+  <div class="relative min-h-screen overflow-hidden">
+    
+    <!-- Rotating Starfield Background -->
+    <Starfield />
+
+    <!-- Main Content Container -->
+    <section class="min-h-screen grid place-items-center px-4 sm:px-6 relative w-full z-10">
+      <div class="flex flex-col items-center gap-8 sm:gap-10 w-full max-w-[460px]">
+        
+        <div class="flex flex-col items-center gap-6 sm:gap-8 w-full">
+          <!-- Welcome header with shove effects -->
+          <div class="flex flex-col items-center gap-1 leading-none">
+            <p class="font-mono text-sm uppercase text-[var(--color-ink-mute)] text-center tracking-widest w-full">
+              Welcome to
+            </p>
+            <p class="font-display font-light text-[32px] sm:text-[42px] leading-none text-white w-full text-center flex justify-center gap-2.5 flex-wrap mt-2 tracking-tight">
+              <span data-shove class="inline-block will-change-transform">Abhay’s</span>
+              <span data-shove class="inline-block will-change-transform">World</span>
+            </p>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex flex-col items-center gap-4">
+            <a id="enter-cta" href="/onboarding" class="btn-springy font-mono inline-flex items-center justify-center px-5 py-2.5 rounded-[12px] bg-[var(--color-bg-light)] text-[var(--color-ink)] text-[13px] uppercase tracking-wider leading-none whitespace-nowrap border border-black/10">
+              explore →
+            </a>
+            <a href="/home" data-skip-link class="font-mono text-[11px] uppercase tracking-widest text-[var(--color-ink-mute)] hover:text-white transition-colors leading-none mt-1" style="opacity: 0.55; transition: opacity 0.24s var(--ease-out-soft), color 0.24s var(--ease-out-soft);" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='0.55'">
+              skip intro
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer slogan with shove words -->
+        <p class="font-mono text-[13px] uppercase tracking-wider text-[var(--color-ink-mute)] text-center w-full max-w-[360px] leading-relaxed mt-4">
+          <span data-shove class="inline-block will-change-transform text-white">discoveries</span> 
+          <span data-shove class="inline-block will-change-transform">are</span> 
+          <span data-shove class="inline-block will-change-transform">out</span> 
+          <span data-shove class="inline-block will-change-transform">there,</span> 
+          <span data-shove class="inline-block will-change-transform">waiting</span> 
+          <span data-shove class="inline-block will-change-transform">to</span> 
+          <span data-shove class="inline-block will-change-transform">be</span> 
+          <span data-shove class="inline-block will-change-transform text-white">made.</span> 
+          <span data-shove class="inline-block will-change-transform">Why</span> 
+          <span data-shove class="inline-block will-change-transform">not</span> 
+          <span data-shove class="inline-block will-change-transform text-white">by</span> 
+          <span data-shove class="inline-block will-change-transform text-white">you?</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Click/Touch Canvas Sparks Effect -->
+    <SparkBurst />
+
+    <!-- Active Custom Cursor Page Flag -->
+    <CustomCursor />
+
+    <!-- Bottom Left Live Clock operational flag -->
+    <div class="status-clock pointer-events-none absolute bottom-[21px] left-[21px] font-mono text-xs uppercase text-[var(--color-ink-mute)] leading-tight hidden sm:block">
+      <p data-clock class="mb-1 text-sm tabular-nums">--:--:-- --</p>
+      <p class="flex items-center gap-1.5 text-[10px] tracking-widest">
+        <span class="status-dot inline-block size-1.5 rounded-full bg-[var(--color-green-1)]" aria-hidden="true"></span>
+        all systems operational
+      </p>
+    </div>
+
+    <!-- Live Clock Script -->
+    <script type="module" is:inline>
+      (function() {
+        function updateClock() {
+          const el = document.querySelector("[data-clock]");
+          if (!el) return;
+          const t = new Date();
+          const h = (t.getHours() + 11) % 12 + 1;
+          const m = String(t.getMinutes()).padStart(2, "0");
+          const s = String(t.getSeconds()).padStart(2, "0");
+          const meridiem = t.getHours() >= 12 ? "PM" : "AM";
+          el.textContent = `${h}:${m}:${s} ${meridiem}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+      })();
+    </script>
+
+    <!-- Word Shoving physics tracking -->
+    <script type="module" is:inline>
+      (function() {
+        const shoveItems = Array.from(document.querySelectorAll("[data-shove]"));
+        if (shoveItems.length === 0) return;
+
+        const maxForceRadius = 95;
+        const pushForce = 26;
+
+        // WeakMaps to store current displacement offsets and target displacements
+        const targetOffsets = new WeakMap();
+        const currentOffsets = new WeakMap();
+
+        shoveItems.forEach(item => {
+          targetOffsets.set(item, { x: 0, y: 0 });
+          currentOffsets.set(item, { x: 0, y: 0 });
+        });
+
+        let cursorX = -9999;
+        let cursorY = -9999;
+
+        // Listen to custom coordinate notifications from CustomCursor
+        window.addEventListener("welcome:pointer", (e) => {
+          cursorX = e.detail.x;
+          cursorY = e.detail.y;
+        });
+
+        let frameId = 0;
+
+        function updatePhysicsLoop() {
+          if (shoveItems.length === 0 || !document.body.contains(shoveItems[0])) {
+            frameId = 0;
+            return;
+          }
+          for (const item of shoveItems) {
+            const rect = item.getBoundingClientRect();
+            // Calculate center coordinate of target text span
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const dx = centerX - cursorX;
+            const dy = centerY - cursorY;
+            const distance = Math.hypot(dx, dy) || 1;
+
+            const targets = targetOffsets.get(item);
+            
+            if (distance < maxForceRadius) {
+              // Word Shove repulsion force mapping curve
+              const intensity = Math.pow(1 - distance / maxForceRadius, 1.4);
+              targets.x = (dx / distance) * intensity * pushForce;
+              targets.y = (dy / distance) * intensity * pushForce;
+            } else {
+              targets.x = 0;
+              targets.y = 0;
+            }
+
+            const current = currentOffsets.get(item);
+            // Linear interpolation return spring ease
+            current.x += (targets.x - current.x) * 0.18;
+            current.y += (targets.y - current.y) * 0.18;
+
+            item.style.transform = `translate3d(${current.x.toFixed(2)}px, ${current.y.toFixed(2)}px, 0)`;
+          }
+
+          frameId = requestAnimationFrame(updatePhysicsLoop);
+        }
+
+        frameId = requestAnimationFrame(updatePhysicsLoop);
+
+        // Pause/resume loop under tab visibility checks
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            cancelAnimationFrame(frameId);
+            frameId = 0;
+          } else {
+            if (!frameId) frameId = requestAnimationFrame(updatePhysicsLoop);
+          }
+        });
+      })();
+    </script>
+  </div>
+</body>
+</html>
