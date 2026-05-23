@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper to check valid signature card schema
+    function isValidCard(data) {
+      return data.name is string 
+        && data.name.size() > 0 
+        && data.name.size() <= 25
+        && data.color in ['indigo', 'teal', 'green', 'orange']
+        && data.date.matches('^\\d{2}/\\d{2}/\\d{2}$')
+        && data.number is int
+        && data.number >= 1000
+        && data.number <= 9999
+        && data.signature is string
+        && data.signature.size() <= 200000
+        && data.signature.matches('^data:image/.*')
+        && data.timestamp is string;
+    }
+
+    // Visitor Gallery Cards
+    match /visitor_cards/{cardId} {
+      // Anyone can view cards
+      allow read: if true;
+      // Anyone can create a card as long as it matches our schema validation
+      allow create: if isValidCard(request.resource.data);
+      // Nobody can edit or delete visitor cards once created
+      allow update, delete: if false;
+    }
+
+    // Site Pet Hat Analytics
+    match /hat_picks/{document} {
+      // Anyone can check the vote aggregates
+      allow read: if true;
+      // Allow atomic updates to the 'aggregates' count map
+      allow write: if request.auth == null; 
+    }
+  }
+}
